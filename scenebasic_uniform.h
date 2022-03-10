@@ -17,6 +17,7 @@ private:
 
     void compile();
     void setMatrices();
+    void drawGUI();
 
 public:
     SceneBasic_Uniform();

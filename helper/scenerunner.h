@@ -3,8 +3,8 @@
 #include <GLFW/glfw3.h>
 #include "glutils.h"
 
-#define WIN_WIDTH 800
-#define WIN_HEIGHT 600
+#define WIN_WIDTH 1600
+#define WIN_HEIGHT 900
 #define GLSL_VERSION "#version 460"
 
 #include <map>

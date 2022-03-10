@@ -20,17 +20,19 @@ uniform mat4 MVP;
 
 void main()
 {
+    Colour = vec3(0.0);
+    
     vec3 n = normalize(NormalMatrix * VertexNormal);
 
     vec4 vPosition = ModelViewMatrix * vec4(VertexPosition, 1.0);
     
-    vec3 s = normalize(LightPosition - vPosition).xyz;
+    vec3 s = normalize(vPosition - LightPosition).xyz;
 
-    float sDotN = max(dot(s, n), 0.0);
+    float sDotN = max(dot(-s, n), 0.0);
 
-    Colour = Ka * La;
+    Colour += Ka * La;
 
-    Colour += Kd * Ld * sDotN;
+    Colour += (Kd * Ld) * sDotN;
 
     gl_Position = MVP * vec4(VertexPosition, 1.0);
 }
