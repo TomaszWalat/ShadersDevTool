@@ -5,15 +5,22 @@
 
 #define WIN_WIDTH 800
 #define WIN_HEIGHT 600
+#define GLSL_VERSION "#version 460"
 
 #include <map>
 #include <string>
 #include <fstream>
 #include <iostream>
 
+#include "../imgui/imgui.h"
+#include "../imgui/backend/imgui_impl_glfw.h"
+#include "../imgui/backend/imgui_impl_opengl3.h"
+
+
 class SceneRunner {
 private:
-    GLFWwindow * window;
+    GLFWwindow* window;
+    //ImGuiIO& io;
     int fbw, fbh;
 	bool debug;           // Set true to enable debug messages
 
@@ -55,6 +62,14 @@ public:
         // Load the OpenGL functions.
         if(!gladLoadGL()) { exit(-1); }
 
+        // Setup Dear ImGui
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();                                     // Create Dear ImGui context
+        ImGuiIO& io = ImGui::GetIO(); (void)io;                     // Get Dear ImGui input interface
+        ImGui::StyleColorsDark();                                   // Set GUI theme / colour scheme
+		ImGui_ImplGlfw_InitForOpenGL(window, true);    // Dear ImGui <-> OpenGL interface 
+        ImGui_ImplOpenGL3_Init(GLSL_VERSION);             // Dear ImGui <-> GLFW interface
+
         GLUtils::dumpGLInfo();
 
         // Initialization
@@ -82,6 +97,11 @@ public:
 			glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 1,
 				GL_DEBUG_SEVERITY_NOTIFICATION, -1, "End debug");
 #endif
+
+        // Clean up Dear ImGui
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
 
 		// Close window and terminate GLFW
 		glfwTerminate();
@@ -116,12 +136,26 @@ private:
         }
     }
 
-    void mainLoop(GLFWwindow * window, Scene & scene) {
+    void mainLoop(GLFWwindow* window, Scene& scene) {
+
         while( ! glfwWindowShouldClose(window) && !glfwGetKey(window, GLFW_KEY_ESCAPE) ) {
             GLUtils::checkForOpenGLError(__FILE__,__LINE__);
-			
+
+            // Begin Dear ImGui new frame
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+
+            // Update scene (time since last loop run)
             scene.update(float(glfwGetTime()));
+
+            // Render scene
             scene.render();
+
+            // Render and drew Dear ImGui frame
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
             glfwSwapBuffers(window);
 
             glfwPollEvents();
