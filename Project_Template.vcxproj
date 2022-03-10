@@ -155,11 +155,14 @@
     <ClCompile Include="helper\glslprogram.cpp" />
     <ClCompile Include="helper\glutils.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="model\teapot.cpp" />
+    <ClCompile Include="model\torus.cpp" />
+    <ClCompile Include="model\trianglemesh.cpp" />
     <ClCompile Include="scenebasic_uniform.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="shader\basic_uniform.frag" />
-    <None Include="shader\basic_uniform.vert" />
+    <None Include="shader\basicShader.frag" />
+    <None Include="shader\basicShader.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="helper\glslprogram.h" />
@@ -168,6 +171,11 @@
     <ClInclude Include="helper\scenerunner.h" />
     <ClInclude Include="helper\stb\stb_image.h" />
     <ClInclude Include="helper\stb\stb_image_write.h" />
+    <ClInclude Include="model\drawable.h" />
+    <ClInclude Include="model\teapot.h" />
+    <ClInclude Include="model\teapotdata.h" />
+    <ClInclude Include="model\torus.h" />
+    <ClInclude Include="model\trianglemesh.h" />
     <ClInclude Include="scenebasic_uniform.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

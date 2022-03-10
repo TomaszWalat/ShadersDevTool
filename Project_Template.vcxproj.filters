@@ -25,6 +25,9 @@
     <Filter Include="helper\stb">
       <UniqueIdentifier>{2eeab77b-5d84-4893-b9df-1b2ed789b189}</UniqueIdentifier>
     </Filter>
+    <Filter Include="model">
+      <UniqueIdentifier>{90718013-e893-4239-b273-c97b4d3df42c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -42,12 +45,21 @@
     <ClCompile Include="scenebasic_uniform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="model\teapot.cpp">
+      <Filter>model</Filter>
+    </ClCompile>
+    <ClCompile Include="model\torus.cpp">
+      <Filter>model</Filter>
+    </ClCompile>
+    <ClCompile Include="model\trianglemesh.cpp">
+      <Filter>model</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shader\basic_uniform.frag">
+    <None Include="shader\basicShader.frag">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shader\basic_uniform.vert">
+    <None Include="shader\basicShader.vert">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>
@@ -72,6 +84,21 @@
     </ClInclude>
     <ClInclude Include="scenebasic_uniform.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="model\drawable.h">
+      <Filter>model</Filter>
+    </ClInclude>
+    <ClInclude Include="model\teapot.h">
+      <Filter>model</Filter>
+    </ClInclude>
+    <ClInclude Include="model\teapotdata.h">
+      <Filter>model</Filter>
+    </ClInclude>
+    <ClInclude Include="model\torus.h">
+      <Filter>model</Filter>
+    </ClInclude>
+    <ClInclude Include="model\trianglemesh.h">
+      <Filter>model</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
