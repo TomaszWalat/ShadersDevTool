@@ -34,8 +34,34 @@ struct LightInfo
 	vec4 Position = vec4(5.0f, 5.0f, 5.0f, 1.0f);
 } light;
 
+std::vector<std::vector<std::string>> shaders  {
+	{"basicShader",
+		"shader/basicShader.vert",
+		"shader/basicShader.frag"},
+
+	{"basicFlatShader",
+		"shader/basicFlatShader.vert",
+		"shader/basicFlatShader.frag"},
+
+	{"phongShader",
+		"shader/phongShader.vert",
+		"shader/phongShader.frag"},
+};
+
 void SceneBasic_Uniform::initScene()
 {
+
+	//std::cout << shaders.size() << " by " << shaders[0].size() << std::endl;
+	//for(int i = 0; i < shaders.size(); i++)
+	//{
+	//	std::cout << i << " = { ";
+	//	for(int j = 0; j < shaders[i].size(); j++)
+	//	{
+	//		std::cout << shaders[i][j] << ", ";
+	//	}
+	//	std::cout << " };" << std::endl;
+	//}
+
     compile();
 
 	glEnable(GL_DEPTH_TEST);
@@ -46,37 +72,82 @@ void SceneBasic_Uniform::initScene()
 	view = lookAt(vec3(0.0f, 0.0f, 2.50f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 
 	projection = mat4(1.0f);
+	
+	progs.at(currentProg)->setUniform("Ka", vec3(0.1f, 0.1f, 1.0f));
+	progs.at(currentProg)->setUniform("Kd", vec3(0.1f, 0.1f, 1.0f));
+	progs.at(currentProg)->setUniform("Ks", vec3(1.0f, 1.0f, 1.0f));
 
-	prog.setUniform("Ka", vec3(0.1f, 0.1f, 1.0f));
-	prog.setUniform("Kd", vec3(0.1f, 0.1f, 1.0f));
-	prog.setUniform("Ks", vec3(1.0f, 1.0f, 1.0f));
+	progs.at(currentProg)->setUniform("La", vec3(0.1f, 0.1f, 0.1f));
+	progs.at(currentProg)->setUniform("Ld", vec3(0.5f, 0.5f, 0.5f));
+	progs.at(currentProg)->setUniform("Ls", vec3(1.0f, 1.0f, 1.0f));
+	progs.at(currentProg)->setUniform("LightPosition", model * view * vec4(5.0f, 5.0f, 2.0f, 1.0f));
 
-	prog.setUniform("La", vec3(0.1f, 0.1f, 0.1f));
-	prog.setUniform("Ld", vec3(0.5f, 0.5f, 0.5f));
-	prog.setUniform("Ls", vec3(1.0f, 1.0f, 1.0f));
-	prog.setUniform("LightPosition", model * view * vec4(5.0f, 5.0f, 2.0f, 1.0f));
+	/*progs[currentProg].setUniform("Ka", vec3(0.1f, 0.1f, 1.0f));
+	progs[currentProg].setUniform("Kd", vec3(0.1f, 0.1f, 1.0f));
+	progs[currentProg].setUniform("Ks", vec3(1.0f, 1.0f, 1.0f));
+
+	progs[currentProg].setUniform("La", vec3(0.1f, 0.1f, 0.1f));
+	progs[currentProg].setUniform("Ld", vec3(0.5f, 0.5f, 0.5f));
+	progs[currentProg].setUniform("Ls", vec3(1.0f, 1.0f, 1.0f));
+	progs[currentProg].setUniform("LightPosition", model * view * vec4(5.0f, 5.0f, 2.0f, 1.0f));*/
 }
 
 void SceneBasic_Uniform::compile()
 {
-	try {
-		prog.compileShader("shader/basicShader.vert");
-		prog.compileShader("shader/basicShader.frag");
-		prog.link();
-		prog.use();
-	} catch (GLSLProgramException &e) {
-		std::cerr << e.what() << std::endl;
-		exit(EXIT_FAILURE);
+	for(int i = 0; i < shaders.size(); i++)
+	{
+		try {
+			std::unique_ptr<GLSLProgram> p = std::make_unique<GLSLProgram>();
+			
+			std::string s = shaders[i][0];
+
+			progs.insert(std::map<std::string, std::unique_ptr<GLSLProgram>>::value_type(s, std::move(p)));
+
+			progs.at(s)->compileShader(shaders[i][1].c_str());
+			progs.at(s)->compileShader(shaders[i][2].c_str());
+			progs.at(s)->link();
+			//progs.at(s)->use();
+
+			//progs[currentProg].compileShader("shader/basicShader.vert");
+			//progs[currentProg].compileShader("shader/basicShader.frag");
+			//progs[currentProg].link();
+			//progs[currentProg].use();
+		} catch (GLSLProgramException &e) {
+			std::cerr << e.what() << std::endl;
+			exit(EXIT_FAILURE);
+		}
+	}
+	
+
+	currentProg = shaders[0][0];
+	progs.at(currentProg)->use();
+}
+
+void SceneBasic_Uniform::changeShader(std::string shaderName)
+{
+	//std::map<std::string, std::unique_ptr<GLSLProgram>>::iterator i = progs.find(shaderName);
+	auto iterator = progs.find(shaderName);
+
+	if(iterator != progs.end())
+	{
+		std::cout << "found: " << shaderName << std::endl;
+		currentProg = iterator->first;
+		iterator->second->use();
 	}
 }
+
 
 void SceneBasic_Uniform::setMatrices()
 {
 	mat4 mv = view * model;
 
-	prog.setUniform("ModelViewMatrix", mv);
-	prog.setUniform("NormalMatrix", mat3(mv[0], mv[1], mv[2]));
-	prog.setUniform("MVP", projection * mv);
+	progs.at(currentProg)->setUniform("ModelViewMatrix", mv);
+	progs.at(currentProg)->setUniform("NormalMatrix", mat3(mv[0], mv[1], mv[2]));
+	progs.at(currentProg)->setUniform("MVP", projection * mv);
+
+	/*progs[currentProg].setUniform("ModelViewMatrix", mv);
+	progs[currentProg].setUniform("NormalMatrix", mat3(mv[0], mv[1], mv[2]));
+	progs[currentProg].setUniform("MVP", projection * mv);*/
 }
 
 void SceneBasic_Uniform::drawGUI()
@@ -93,9 +164,13 @@ void SceneBasic_Uniform::drawGUI()
 
 	ImGui::End();
 
-	prog.setUniform("Ka", torusMaterial.Ka);
-	prog.setUniform("Kd", torusMaterial.Kd);
-	prog.setUniform("Ks", torusMaterial.Ks);
+	progs.at(currentProg)->setUniform("Ka", torusMaterial.Ka);
+	progs.at(currentProg)->setUniform("Kd", torusMaterial.Kd);
+	progs.at(currentProg)->setUniform("Ks", torusMaterial.Ks);
+
+	//progs[currentProg].setUniform("Ka", torusMaterial.Ka);
+	//progs[currentProg].setUniform("Kd", torusMaterial.Kd);
+	//progs[currentProg].setUniform("Ks", torusMaterial.Ks);
 
 	ImGui::Begin("Light Info");
 	
@@ -112,10 +187,30 @@ void SceneBasic_Uniform::drawGUI()
 
 	ImGui::End();
 
-	prog.setUniform("La", light.La);
-	prog.setUniform("Ld", light.Ld);
-	prog.setUniform("Ls", light.Ls);
-	prog.setUniform("LightPosition", model * view * light.Position);
+	progs.at(currentProg)->setUniform("La", light.La);
+	progs.at(currentProg)->setUniform("Ld", light.Ld);
+	progs.at(currentProg)->setUniform("Ls", light.Ls);
+	progs.at(currentProg)->setUniform("LightPosition", model * view * light.Position);
+
+	/*progs[currentProg].setUniform("La", light.La);
+	progs[currentProg].setUniform("Ld", light.Ld);
+	progs[currentProg].setUniform("Ls", light.Ls);
+	progs[currentProg].setUniform("LightPosition", model * view * light.Position);*/
+
+	ImGui::Begin("Shader Selection");
+
+	for(int i = 0; i < shaders.size(); i++)
+	{
+		if(ImGui::Button(shaders[i][0].c_str()))
+		{
+			changeShader(shaders[i][0]);
+		}
+		ImGui::Separator();
+		ImGui::Spacing();
+	}
+
+	ImGui::End();
+
 }
 
 

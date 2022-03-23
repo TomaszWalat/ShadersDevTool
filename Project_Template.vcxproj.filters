@@ -83,6 +83,18 @@
     <None Include="shader\basicShader.vert">
       <Filter>shaders</Filter>
     </None>
+    <None Include="shader\phongShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\basicFlatShader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\basicFlatShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\phongShader.frag">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="helper\scene.h">

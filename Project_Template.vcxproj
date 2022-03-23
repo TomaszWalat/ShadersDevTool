@@ -167,8 +167,12 @@
     <ClCompile Include="scenebasic_uniform.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shader\basicFlatShader.frag" />
+    <None Include="shader\basicFlatShader.vert" />
     <None Include="shader\basicShader.frag" />
     <None Include="shader\basicShader.vert" />
+    <None Include="shader\phongShader.frag" />
+    <None Include="shader\phongShader.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="helper\glslprogram.h" />

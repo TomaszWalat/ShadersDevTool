@@ -55,23 +55,6 @@ void GLSLProgram::detachAndDeleteShaderObjects() {
 	}
 }
 
-void GLSLProgram::compileShader(const char *fileName) {
-
-    // Check the file name's extension to determine the shader type
-    string ext = getExtension(fileName);
-    GLSLShader::GLSLShaderType type = GLSLShader::VERTEX;
-	auto it = GLSLShaderInfo::extensions.find(ext);
-	if (it != GLSLShaderInfo::extensions.end()) {
-		type = it->second;
-	} else {
-		string msg = "Unrecognized extension: " + ext;
-		throw GLSLProgramException(msg);
-	}
-
-    // Pass the discovered shader type along
-    compileShader(fileName, type);
-}
-
 string GLSLProgram::getExtension(const char *name) {
     string nameStr(name);
 
@@ -92,6 +75,23 @@ string GLSLProgram::getExtension(const char *name) {
         }
     }
     return "";
+}
+
+void GLSLProgram::compileShader(const char *fileName) {
+
+    // Check the file name's extension to determine the shader type
+    string ext = getExtension(fileName);
+    GLSLShader::GLSLShaderType type = GLSLShader::VERTEX;
+	auto it = GLSLShaderInfo::extensions.find(ext);
+	if (it != GLSLShaderInfo::extensions.end()) {
+		type = it->second;
+	} else {
+		string msg = "Unrecognized extension: " + ext;
+		throw GLSLProgramException(msg);
+	}
+
+    // Pass the discovered shader type along
+    compileShader(fileName, type);
 }
 
 void GLSLProgram::compileShader(const char *fileName,
