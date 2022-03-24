@@ -78,6 +78,9 @@
     <ClCompile Include="camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sceneObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\basicShader.frag">
@@ -165,6 +168,15 @@
     </ClInclude>
     <ClInclude Include="camera.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sceneObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="materialInfo.h">
+      <Filter>model</Filter>
+    </ClInclude>
+    <ClInclude Include="lightInfo.h">
+      <Filter>model</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
