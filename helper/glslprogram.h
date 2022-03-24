@@ -5,10 +5,10 @@
 #endif
 
 #include <glad/glad.h>
+#include <glm/glm.hpp>
 
 #include <string>
 #include <map>
-#include <glm/glm.hpp>
 #include <stdexcept>
 
 class GLSLProgramException : public std::runtime_error {

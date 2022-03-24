@@ -1,9 +1,10 @@
 #ifndef SCENEBASIC_UNIFORM_H
 #define SCENEBASIC_UNIFORM_H
 
+//#include <glad/glad.h>
+#include <glm/glm.hpp>
+
 #include <memory>
-#include <glad/glad.h>
-#include "glm/glm.hpp"
 
 #include "helper/scene.h"
 #include "helper/glslprogram.h"

@@ -1,15 +1,26 @@
 #pragma once
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+
+#include <memory>
+
+#include "../imgui/imgui.h"
+
+#include "camera.h"
 
 class Scene
 {
 protected:
 	glm::mat4 model, view, projection;
+    
 
 public:
     int width;
     int height;
+
+	std::unique_ptr<Camera> cam;
 
 	Scene() : m_animate(true), width(800), height(600) { }
 	virtual ~Scene() {}

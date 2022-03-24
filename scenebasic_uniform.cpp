@@ -1,23 +1,24 @@
 #include "scenebasic_uniform.h"
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
 #include <string>
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include "helper/glutils.h"
 
 #include "imgui/imgui.h"
+
 
 using glm::vec3;
 using glm::vec4;
 using glm::mat3;
 using glm::mat4;
 
-SceneBasic_Uniform::SceneBasic_Uniform() : torus(0.7f, 0.3f, 30, 30) {}
+SceneBasic_Uniform::SceneBasic_Uniform() : torus(0.7f, 0.3f, 15, 15) {}
 
 struct MetrialInfo
 {
@@ -61,6 +62,8 @@ void SceneBasic_Uniform::initScene()
 	//	}
 	//	std::cout << " };" << std::endl;
 	//}
+
+	cam = std::make_unique<Camera>();
 
     compile();
 
@@ -139,11 +142,11 @@ void SceneBasic_Uniform::changeShader(std::string shaderName)
 
 void SceneBasic_Uniform::setMatrices()
 {
-	mat4 mv = view * model;
+	mat4 mv = cam->getView() * cam->getModel();
 
 	progs.at(currentProg)->setUniform("ModelViewMatrix", mv);
 	progs.at(currentProg)->setUniform("NormalMatrix", mat3(mv[0], mv[1], mv[2]));
-	progs.at(currentProg)->setUniform("MVP", projection * mv);
+	progs.at(currentProg)->setUniform("MVP", cam->getProjection() * mv);
 
 	/*progs[currentProg].setUniform("ModelViewMatrix", mv);
 	progs[currentProg].setUniform("NormalMatrix", mat3(mv[0], mv[1], mv[2]));
@@ -152,6 +155,10 @@ void SceneBasic_Uniform::setMatrices()
 
 void SceneBasic_Uniform::drawGUI()
 {
+	ImGui::Begin("Camera data");
+	cam->drawGUI();
+	ImGui::End();
+
 	ImGui::Begin("Torus Info");
 
 	ImGui::ColorEdit3("Ambient", glm::value_ptr(torusMaterial.Ka));
