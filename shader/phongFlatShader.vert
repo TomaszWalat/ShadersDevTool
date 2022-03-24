@@ -3,8 +3,8 @@
 layout (location = 0) in vec3 VertexPosition;
 layout (location = 1) in vec3 VertexNormal;
 
-out vec4 Position;
-out vec3 Normal;
+flat out vec4 Position;
+flat out vec3 Normal;
 
 uniform mat4 ModelViewMatrix;
 uniform mat3 NormalMatrix;

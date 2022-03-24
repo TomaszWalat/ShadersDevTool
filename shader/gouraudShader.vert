@@ -28,7 +28,7 @@ void main()
     vec4 lPosition = ModelViewMatrix * LightPosition;
 
     vec3 n = normalize(NormalMatrix * VertexNormal);
-
+    
     vec3 s = normalize((vPosition * lPosition.w) - lPosition).xyz;
 
     float sDotN = max(dot(-s, n), 0.0);
@@ -36,6 +36,15 @@ void main()
     Colour += Ka * La;
 
     Colour += (Kd * Ld) * sDotN;
+
+    if(sDotN > 0.0)
+    {
+        vec3 v = normalize(-vPosition).xyz;
+
+		vec3 r = reflect(s, n);
+
+		Colour += (Ks * Ls) * pow( max( dot(r, v), 0.0), Shininess);
+    }
 
     gl_Position = MVP * vec4(VertexPosition, 1.0);
 }

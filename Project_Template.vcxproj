@@ -173,6 +173,16 @@
     <None Include="shader\basicFlatShader.vert" />
     <None Include="shader\basicShader.frag" />
     <None Include="shader\basicShader.vert" />
+    <None Include="shader\blinnPhongFlatShader.frag" />
+    <None Include="shader\blinnPhongFlatShader.vert" />
+    <None Include="shader\blinnPhongShader.frag" />
+    <None Include="shader\blinnPhongShader.vert" />
+    <None Include="shader\gouraudFlatShader.frag" />
+    <None Include="shader\gouraudFlatShader.vert" />
+    <None Include="shader\gouraudShader.frag" />
+    <None Include="shader\gouraudShader.vert" />
+    <None Include="shader\phongFlatShader.frag" />
+    <None Include="shader\phongFlatShader.vert" />
     <None Include="shader\phongShader.frag" />
     <None Include="shader\phongShader.vert" />
   </ItemGroup>

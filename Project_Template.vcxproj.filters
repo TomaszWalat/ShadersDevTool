@@ -101,6 +101,36 @@
     <None Include="shader\phongShader.frag">
       <Filter>shaders</Filter>
     </None>
+    <None Include="shader\gouraudShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\gouraudFlatShader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\gouraudFlatShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\gouraudShader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\phongFlatShader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\phongFlatShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\blinnPhongShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\blinnPhongShader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\blinnPhongFlatShader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\blinnPhongFlatShader.vert">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="helper\scene.h">

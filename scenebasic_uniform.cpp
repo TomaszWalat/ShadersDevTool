@@ -18,13 +18,14 @@ using glm::vec4;
 using glm::mat3;
 using glm::mat4;
 
-SceneBasic_Uniform::SceneBasic_Uniform() : torus(0.7f, 0.3f, 15, 15) {}
+SceneBasic_Uniform::SceneBasic_Uniform() : torus(0.7f, 0.3f, 25, 25) {}
 
 struct MetrialInfo
 {
 	vec3 Ka = vec3(0.1f, 0.1f, 1.0f);
 	vec3 Kd = vec3(0.1f, 0.1f, 1.0f);
 	vec3 Ks = vec3(1.0f, 1.0f, 1.0f);
+	GLfloat Shininess = 64.0f;
 } torusMaterial;
 
 struct LightInfo
@@ -32,21 +33,41 @@ struct LightInfo
 	vec3 La = vec3(0.1f, 0.1f, 0.1f);
 	vec3 Ld = vec3(0.5f, 0.5f, 0.5f);
 	vec3 Ls = vec3(1.0f, 1.0f, 1.0f);
-	vec4 Position = vec4(5.0f, 5.0f, 5.0f, 1.0f);
+	vec4 Position = vec4(5.0f, 5.0f, 5.0f, 0.0f);
 } light;
 
 std::vector<std::vector<std::string>> shaders  {
-	{"basicShader",
+	{"Basic Shader",
 		"shader/basicShader.vert",
 		"shader/basicShader.frag"},
 
-	{"basicFlatShader",
+	{"Basic Flat Shader",
 		"shader/basicFlatShader.vert",
 		"shader/basicFlatShader.frag"},
 
-	{"phongShader",
+	{"Gouraud Shader",
+		"shader/gouraudShader.vert",
+		"shader/gouraudShader.frag"},
+
+	{"Gouraud Flat Shader",
+		"shader/gouraudFlatShader.vert",
+		"shader/gouraudFlatShader.frag"},
+
+	{"Phong Shader",
 		"shader/phongShader.vert",
 		"shader/phongShader.frag"},
+
+	{"Phong Flat Shader",					// <---- KIND OF POINLESS
+		"shader/phongFlatShader.vert",
+		"shader/phongFlatShader.frag"},
+
+	{"Blinn-Phong Shader",
+		"shader/blinnPhongShader.vert",
+		"shader/blinnPhongShader.frag"},
+
+	{"Blinn-Phong Flat Shader",
+		"shader/blinnPhongFlatShader.vert",
+		"shader/blinnPhongFlatShader.frag"},
 };
 
 void SceneBasic_Uniform::initScene()
@@ -79,11 +100,12 @@ void SceneBasic_Uniform::initScene()
 	progs.at(currentProg)->setUniform("Ka", vec3(0.1f, 0.1f, 1.0f));
 	progs.at(currentProg)->setUniform("Kd", vec3(0.1f, 0.1f, 1.0f));
 	progs.at(currentProg)->setUniform("Ks", vec3(1.0f, 1.0f, 1.0f));
+	progs.at(currentProg)->setUniform("Shininess", 64.0f);
 
 	progs.at(currentProg)->setUniform("La", vec3(0.1f, 0.1f, 0.1f));
 	progs.at(currentProg)->setUniform("Ld", vec3(0.5f, 0.5f, 0.5f));
 	progs.at(currentProg)->setUniform("Ls", vec3(1.0f, 1.0f, 1.0f));
-	progs.at(currentProg)->setUniform("LightPosition", model * view * vec4(5.0f, 5.0f, 2.0f, 1.0f));
+	progs.at(currentProg)->setUniform("LightPosition", vec4(5.0f, 5.0f, 2.0f, 0.0f));
 
 	/*progs[currentProg].setUniform("Ka", vec3(0.1f, 0.1f, 1.0f));
 	progs[currentProg].setUniform("Kd", vec3(0.1f, 0.1f, 1.0f));
@@ -168,12 +190,16 @@ void SceneBasic_Uniform::drawGUI()
 	ImGui::Separator();
 	ImGui::Spacing();
 	ImGui::ColorEdit3("Specular", glm::value_ptr(torusMaterial.Ks));
+	ImGui::Separator();
+	ImGui::Spacing();
+	ImGui::SliderFloat("Shininess", &torusMaterial.Shininess, 0.0f, 256.0f);
 
 	ImGui::End();
 
 	progs.at(currentProg)->setUniform("Ka", torusMaterial.Ka);
 	progs.at(currentProg)->setUniform("Kd", torusMaterial.Kd);
 	progs.at(currentProg)->setUniform("Ks", torusMaterial.Ks);
+	progs.at(currentProg)->setUniform("Shininess", torusMaterial.Shininess);
 
 	//progs[currentProg].setUniform("Ka", torusMaterial.Ka);
 	//progs[currentProg].setUniform("Kd", torusMaterial.Kd);
@@ -197,7 +223,7 @@ void SceneBasic_Uniform::drawGUI()
 	progs.at(currentProg)->setUniform("La", light.La);
 	progs.at(currentProg)->setUniform("Ld", light.Ld);
 	progs.at(currentProg)->setUniform("Ls", light.Ls);
-	progs.at(currentProg)->setUniform("LightPosition", model * view * light.Position);
+	progs.at(currentProg)->setUniform("LightPosition", light.Position);
 
 	/*progs[currentProg].setUniform("La", light.La);
 	progs[currentProg].setUniform("Ld", light.Ld);

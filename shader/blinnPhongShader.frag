@@ -37,9 +37,10 @@ void main() {
     {
         vec3 v = normalize(-Position).xyz;
 
-		vec3 r = reflect(s, Normal);
+        vec3 h = normalize(v + -s);
 
-		Colour += (Ks * Ls) * pow( max( dot(r, v), 0.0), Shininess);
+        // NOTE TO SELF: using dot(h, v) produces a funky effect - need to investigate
+		Colour += (Ks * Ls) * pow( max( dot(h, Normal), 0.0), Shininess);
     }
 
     FragColor = vec4(Colour, 1.0);
