@@ -36,29 +36,29 @@ struct LightInfo
 } light;
 
 std::vector<std::vector<std::string>> shaders  {
-	{"Basic Shader",
-		"shader/basicShader.vert",
-		"shader/basicShader.frag"},
+	//{"Basic Shader",
+	//	"shader/basicShader.vert",
+	//	"shader/basicShader.frag"},
 
-	{"Basic Flat Shader",
-		"shader/basicFlatShader.vert",
-		"shader/basicFlatShader.frag"},
+	//{"Basic Flat Shader",
+	//	"shader/basicFlatShader.vert",
+	//	"shader/basicFlatShader.frag"},
 
-	{"Gouraud Shader",
-		"shader/gouraudShader.vert",
-		"shader/gouraudShader.frag"},
+	//{"Gouraud Shader",
+	//	"shader/gouraudShader.vert",
+	//	"shader/gouraudShader.frag"},
 
-	{"Gouraud Flat Shader",
-		"shader/gouraudFlatShader.vert",
-		"shader/gouraudFlatShader.frag"},
+	//{"Gouraud Flat Shader",
+	//	"shader/gouraudFlatShader.vert",
+	//	"shader/gouraudFlatShader.frag"},
 
-	{"Phong Shader",
-		"shader/phongShader.vert",
-		"shader/phongShader.frag"},
+	//{"Phong Shader",
+	//	"shader/phongShader.vert",
+	//	"shader/phongShader.frag"},
 
-	{"Phong Flat Shader",					// <---- KIND OF POINLESS
-		"shader/phongFlatShader.vert",
-		"shader/phongFlatShader.frag"},
+	//{"Phong Flat Shader",					// <---- KIND OF POINLESS
+	//	"shader/phongFlatShader.vert",
+	//	"shader/phongFlatShader.frag"},
 
 	{"Blinn-Phong Shader",
 		"shader/blinnPhongShader.vert",
