@@ -10,8 +10,14 @@ using glm::mat4;
 using glm::mat3;
 using glm::vec4;
 
+mat4 correctionMatrix;
+mat4 correctionMatrixReverseV;
+
 Teapot::Teapot(int grid, const mat4 & lidTransform)
 {
+    correctionMatrix = glm::rotate(mat4(1.0f), glm::radians(90.0f), vec3(1.0f, 0.0f, 0.0f));
+    correctionMatrix = glm::rotate(mat4(1.0f), glm::radians(-90.0f), vec3(1.0f, 0.0f, 0.0f));
+
     int verts = 32 * (grid + 1) * (grid + 1);
     int faces = grid * grid * 32;
     std::vector<GLfloat> p( verts * 3 );
@@ -80,7 +86,7 @@ void Teapot::buildPatchReflect(int patchNum,
                                std::vector<GLfloat> & v, std::vector<GLfloat> & n,
                                std::vector<GLfloat> & tc, std::vector<GLuint> & el,
                                int &index, int &elIndex, int &tcIndex, int grid,
-                               bool reflectX, bool reflectY)
+                               bool reflectX, bool reflectZ/*reflectY*/)
 {
     vec3 patch[4][4];
     vec3 patchRevV[4][4];
@@ -100,20 +106,36 @@ void Teapot::buildPatchReflect(int patchNum,
     }
 
     // Patch reflected in y
-    if( reflectY ) {
+    if( reflectZ ) {
         buildPatch(patchRevV, B, dB, v, n, tc, el,
                    index, elIndex, tcIndex, grid, mat3(vec3(1.0f, 0.0f, 0.0f),
-                                              vec3(0.0f, -1.0f, 0.0f),
-                                              vec3(0.0f, 0.0f, 1.0f) ), false );
+                                              vec3(0.0f, 1.0f, 0.0f),
+                                              vec3(0.0f, 0.0f, -1.0f) ), false );
     }
 
     // Patch reflected in x and y
-    if( reflectX && reflectY ) {
+    if( reflectX && reflectZ ) {
         buildPatch(patch, B, dB, v, n, tc, el,
                    index, elIndex, tcIndex, grid, mat3(vec3(-1.0f, 0.0f, 0.0f),
-                                              vec3(0.0f, -1.0f, 0.0f),
-                                              vec3(0.0f, 0.0f, 1.0f) ), true );
+                                              vec3(0.0f, 1.0f, 0.0f),
+                                              vec3(0.0f, 0.0f, -1.0f) ), true );
     }
+
+    //// Patch reflected in y
+    //if( reflectY ) {
+    //    buildPatch(patchRevV, B, dB, v, n, tc, el,
+    //               index, elIndex, tcIndex, grid, mat3(vec3(1.0f, 0.0f, 0.0f),
+    //                                          vec3(0.0f, -1.0f, 0.0f),
+    //                                          vec3(0.0f, 0.0f, 1.0f) ), false );
+    //}
+
+    //// Patch reflected in x and y
+    //if( reflectX && reflectY ) {
+    //    buildPatch(patch, B, dB, v, n, tc, el,
+    //               index, elIndex, tcIndex, grid, mat3(vec3(-1.0f, 0.0f, 0.0f),
+    //                                          vec3(0.0f, -1.0f, 0.0f),
+    //                                          vec3(0.0f, 0.0f, 1.0f) ), true );
+    //}
 }
 
 void Teapot::buildPatch(vec3 patch[][4],
@@ -175,17 +197,17 @@ void Teapot::getPatch( int patchNum, vec3 patch[][4], bool reverseV )
     for( int u = 0; u < 4; u++) {          // Loop in u direction
         for( int v = 0; v < 4; v++ ) {     // Loop in v direction
             if( reverseV ) {
-                patch[u][v] = vec3(
+                patch[u][v] = correctionMatrix * vec4(
                         TeapotData::cpdata[TeapotData::patchdata[patchNum][u*4+(3-v)]][0],
                         TeapotData::cpdata[TeapotData::patchdata[patchNum][u*4+(3-v)]][1],
-                        TeapotData::cpdata[TeapotData::patchdata[patchNum][u*4+(3-v)]][2]
-                        );
+                        TeapotData::cpdata[TeapotData::patchdata[patchNum][u*4+(3-v)]][2],
+						1.0f);
             } else {
-                patch[u][v] = vec3(
+                patch[u][v] = correctionMatrix * vec4(
                         TeapotData::cpdata[TeapotData::patchdata[patchNum][u*4+v]][0],
                         TeapotData::cpdata[TeapotData::patchdata[patchNum][u*4+v]][1],
-                        TeapotData::cpdata[TeapotData::patchdata[patchNum][u*4+v]][2]
-                        );
+                        TeapotData::cpdata[TeapotData::patchdata[patchNum][u*4+v]][2],
+                        1.0f);
             }
         }
     }

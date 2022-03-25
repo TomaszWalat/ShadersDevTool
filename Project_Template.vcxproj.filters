@@ -81,6 +81,12 @@
     <ClCompile Include="sceneObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="model\objmesh.cpp">
+      <Filter>model</Filter>
+    </ClCompile>
+    <ClCompile Include="model\plane.cpp">
+      <Filter>model</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\basicShader.frag">
@@ -206,6 +212,18 @@
       <Filter>model</Filter>
     </ClInclude>
     <ClInclude Include="lightInfo.h">
+      <Filter>model</Filter>
+    </ClInclude>
+    <ClInclude Include="helper\aabb.h">
+      <Filter>helper</Filter>
+    </ClInclude>
+    <ClInclude Include="helper\utils.h">
+      <Filter>helper</Filter>
+    </ClInclude>
+    <ClInclude Include="model\objmesh.h">
+      <Filter>model</Filter>
+    </ClInclude>
+    <ClInclude Include="model\plane.h">
       <Filter>model</Filter>
     </ClInclude>
   </ItemGroup>

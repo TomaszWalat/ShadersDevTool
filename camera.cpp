@@ -16,13 +16,13 @@ Camera::Camera()
 	nearPlane = 0.1f;
 	farPlane = 40.0f;
 
-	model = glm::mat4(1.0f);
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -2.5f, 0.0f));
 	view = glm::mat4(1.0f);
 	projection = glm::perspective(fov, aspectRatio, nearPlane, farPlane);
 
 	movementSpeed = 0.05f;
 	rotationSpeed = 0.01f;
-	rotationRadius = 5.0f; 
+	rotationRadius = 10.0f; 
 	horizontalRotationCap = 3.14159f;	//  pi  ==  half circle   == 180 degrees
 	verticalRotationCap = 1.57079f;		// pi/2 == quarter circle ==  90 degrees
 	currentHorizontalRotation = 0.0f;
@@ -31,7 +31,6 @@ Camera::Camera()
 
 	// Invert camera through origin for arcball style movement
 	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -rotationRadius));
-
 }
 
 Camera::~Camera()
@@ -123,7 +122,7 @@ void Camera::rotateAroundTarget(glm::vec2 rotationDirection)
 
 void Camera::tilt(GLfloat amount)
 {
-	view = glm::rotate(view, amount, glm::vec3(viewInverse[2].x, viewInverse[2].y, viewInverse[2].z));
+	view = glm::rotate(view, amount * rotationSpeed, glm::vec3(viewInverse[2].x, viewInverse[2].y, viewInverse[2].z));
 
 	updateInverse();
 }
@@ -143,8 +142,8 @@ void Camera::resetModel()
 {
 	currentHorizontalRotation = 0.0f;
 	currentVerticalRotation = 0.0f;
-
-	model = glm::mat4(1.0f);
+	
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -2.5f, 0.0f));
 }
 
 void Camera::resetView()

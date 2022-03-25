@@ -15,6 +15,7 @@ uniform vec3 Kd;
 uniform vec3 Ks;
 uniform float Shininess;
 
+uniform mat4 ObjectModelMatrix;
 uniform mat4 ModelViewMatrix;
 uniform mat3 NormalMatrix;
 uniform mat4 MVP;
@@ -23,7 +24,7 @@ void main()
 {
     Colour = vec3(0.0);
     
-    vec4 vPosition = ModelViewMatrix * vec4(VertexPosition, 1.0);
+    vec4 vPosition = ModelViewMatrix * ObjectModelMatrix * vec4(VertexPosition, 1.0);
 
     vec4 lPosition = ModelViewMatrix * LightPosition;
 
@@ -37,5 +38,5 @@ void main()
 
     Colour += (Kd * Ld) * sDotN;
 
-    gl_Position = MVP * vec4(VertexPosition, 1.0);
+    gl_Position = MVP * ObjectModelMatrix * vec4(VertexPosition, 1.0);
 }

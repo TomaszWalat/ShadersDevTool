@@ -6,19 +6,18 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
 #include <string>
 
 #include "helper/glutils.h"
 
 #include "imgui/imgui.h"
 
-
 using glm::vec3;
 using glm::vec4;
 using glm::mat3;
 using glm::mat4;
 
-SceneBasic_Uniform::SceneBasic_Uniform() : torus(0.7f, 0.3f, 25, 25) {}
 
 struct MetrialInfo
 {
@@ -70,6 +69,24 @@ std::vector<std::vector<std::string>> shaders  {
 		"shader/blinnPhongFlatShader.frag"},
 };
 
+SceneBasic_Uniform::SceneBasic_Uniform() : floor(20.0f, 20.0f, 100, 100),
+										   torus(0.7f, 0.3f, 25, 25),
+										   teapot(10, mat4(1.0f))
+{
+	piggy = ObjMesh::load("../PrototypeShadersDevTool/media/pig_triangulated.obj", true);
+
+	mat4 m = mat4(1.0f);
+	
+	m = glm::rotate(m, glm::radians(135.0f), vec3(0.0f, 1.0f, 0.0f));
+	m = glm::translate(m, vec3(-5.0f, 0.0f, 3.0f));
+
+	teapot.model = m;
+	
+	torus.model = glm::translate(mat4(1.0f), vec3(0.0f, 2.0f, -2.0f));
+	
+	piggy->model = glm::translate(glm::scale(mat4(1.0f), vec3(2.0f)), vec3(-2.0f, 0.5f, 0.0f));
+}
+
 void SceneBasic_Uniform::initScene()
 {
 
@@ -90,12 +107,12 @@ void SceneBasic_Uniform::initScene()
 
 	glEnable(GL_DEPTH_TEST);
 
-	model = mat4(1.0f);
+	//model = mat4(1.0f);
 	//model[3][1] = -2.5f;
 
-	view = lookAt(vec3(0.0f, 0.0f, 2.50f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
+	//view = lookAt(vec3(0.0f, 0.0f, 2.50f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 
-	projection = mat4(1.0f);
+	//projection = mat4(1.0f);
 	
 	progs.at(currentProg)->setUniform("Ka", vec3(0.1f, 0.1f, 1.0f));
 	progs.at(currentProg)->setUniform("Kd", vec3(0.1f, 0.1f, 1.0f));
@@ -259,8 +276,26 @@ void SceneBasic_Uniform::render()
 	drawGUI();
 
 	setMatrices();
+	
+	progs.at(currentProg)->setUniform("ObjectModelMatrix", floor.model);
+	mat4 mv = cam->getView() * cam->getModel() * floor.model;
+	progs.at(currentProg)->setUniform("NormalMatrix", mat3(mv[0], mv[1], mv[2]));
+	floor.render();
 
+	progs.at(currentProg)->setUniform("ObjectModelMatrix", torus.model);
+	mv = cam->getView() * cam->getModel() * torus.model;
+	progs.at(currentProg)->setUniform("NormalMatrix", mat3(mv[0], mv[1], mv[2]));
 	torus.render();
+
+	progs.at(currentProg)->setUniform("ObjectModelMatrix", teapot.model);
+	mv = cam->getView() * cam->getModel() * teapot.model;
+	progs.at(currentProg)->setUniform("NormalMatrix", mat3(mv[0], mv[1], mv[2]));
+	teapot.render();
+	
+	progs.at(currentProg)->setUniform("ObjectModelMatrix", piggy->model);
+	mv = cam->getView() * cam->getModel() * piggy->model;
+	progs.at(currentProg)->setUniform("NormalMatrix", mat3(mv[0], mv[1], mv[2]));
+	piggy->render();
 
 }
 

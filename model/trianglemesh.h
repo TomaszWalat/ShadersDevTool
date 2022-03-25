@@ -4,8 +4,9 @@
 
 #include <glad/glad.h>
 #include "drawable.h"
+#include "../sceneObject.h"
 
-class TriangleMesh : public Drawable {
+class TriangleMesh : public Drawable, public SceneObject {
 
 protected:
 

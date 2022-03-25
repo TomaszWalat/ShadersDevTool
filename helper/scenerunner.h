@@ -215,8 +215,8 @@ private:
 			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) scene.cam->moveForward();
 
 			// Camera tilting 
-			if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) scene.cam->tilt(0.05f);
-			if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) scene.cam->tilt(-0.05f);
+			if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) scene.cam->tilt(1.0f);
+			if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) scene.cam->tilt(-1.0f);
 
 			// Camera arcball style rotation
 			if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)

@@ -6,6 +6,7 @@ layout (location = 1) in vec3 VertexNormal;
 flat out vec4 Position;
 flat out vec3 Normal;
 
+uniform mat4 ObjectModelMatrix;
 uniform mat4 ModelViewMatrix;
 uniform mat3 NormalMatrix;
 uniform mat4 MVP;
@@ -13,9 +14,9 @@ uniform mat4 MVP;
 void main()
 {
     
-    Position = ModelViewMatrix * vec4(VertexPosition, 1.0);
+    Position = ModelViewMatrix * ObjectModelMatrix * vec4(VertexPosition, 1.0);
 
     Normal = normalize(NormalMatrix * VertexNormal);
 
-    gl_Position = MVP * vec4(VertexPosition, 1.0);
+    gl_Position = MVP * ObjectModelMatrix * vec4(VertexPosition, 1.0);
 }

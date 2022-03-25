@@ -4,7 +4,7 @@
 
 class SceneObject
 {
-protected:
+public:
 	glm::mat4 model;
 
 };
