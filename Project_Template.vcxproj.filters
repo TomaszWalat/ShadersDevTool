@@ -87,6 +87,18 @@
     <ClCompile Include="model\plane.cpp">
       <Filter>model</Filter>
     </ClCompile>
+    <ClCompile Include="model\skybox.cpp">
+      <Filter>model</Filter>
+    </ClCompile>
+    <ClCompile Include="model\cube.cpp">
+      <Filter>model</Filter>
+    </ClCompile>
+    <ClCompile Include="helper\stb\stb_image.cpp">
+      <Filter>helper\stb</Filter>
+    </ClCompile>
+    <ClCompile Include="helper\texture.cpp">
+      <Filter>helper</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\basicShader.frag">
@@ -135,6 +147,30 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="shader\blinnPhongFlatShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\experimental_blinnPhongShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\experimental_blinnPhongShader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\skyboxShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\skyboxShader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\blinnPhongSkyboxReflectionShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\blinnPhongAlphaMapShader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\blinnPhongAlphaMapShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\blinnPhongSkyboxReflectionShader.frag">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>
@@ -225,6 +261,15 @@
     </ClInclude>
     <ClInclude Include="model\plane.h">
       <Filter>model</Filter>
+    </ClInclude>
+    <ClInclude Include="model\cube.h">
+      <Filter>model</Filter>
+    </ClInclude>
+    <ClInclude Include="model\skybox.h">
+      <Filter>model</Filter>
+    </ClInclude>
+    <ClInclude Include="helper\texture.h">
+      <Filter>helper</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

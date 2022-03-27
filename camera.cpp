@@ -14,7 +14,7 @@ Camera::Camera()
 	aspectRatioY = 9.0f;
 	aspectRatio = aspectRatioX / aspectRatioY;
 	nearPlane = 0.1f;
-	farPlane = 40.0f;
+	farPlane = 100.0f;
 
 	model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -2.5f, 0.0f));
 	view = glm::mat4(1.0f);

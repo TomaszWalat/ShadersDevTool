@@ -5,8 +5,15 @@
 
 struct LightInfo
 {
+	glm::vec4 position;
+	glm::vec3 direction;
+
 	glm::vec3 colour;
-	GLfloat La;
-	GLfloat Ld;
-	GLfloat Ls;
+	GLfloat ambient;
+	GLfloat diffuse;
+	GLfloat specular;
+
+	GLfloat attenuationConstant;
+	GLfloat attenuationLinear;
+	GLfloat attenuationQuadratic;
 };

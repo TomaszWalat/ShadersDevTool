@@ -8,11 +8,13 @@
 
 #include "helper/scene.h"
 #include "helper/glslprogram.h"
+#include "model/cube.h"
 
 #include "model/plane.h"
 #include "model/torus.h"
 #include "model/teapot.h"
 #include "model/objmesh.h"
+#include "model/skybox.h"
 
 class SceneBasic_Uniform : public Scene
 {
@@ -21,13 +23,19 @@ private:
     std::string currentProg;
     GLSLProgram prog;
     std::map<std::string, std::unique_ptr<GLSLProgram>> progs;
+
+    SkyBox skybox;
     Plane floor;
+    Cube metalCube;
+    Cube box;
     Torus torus;
     Teapot teapot;
     std::unique_ptr<ObjMesh> piggy;
+    std::unique_ptr<ObjMesh> ogre;
 
     void compile();
     void setMatrices();
+    void setMeshUniforms(TriangleMesh* mesh);
     void drawGUI();
 
 public:

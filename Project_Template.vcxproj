@@ -155,6 +155,8 @@
     <ClCompile Include="glad.c" />
     <ClCompile Include="helper\glslprogram.cpp" />
     <ClCompile Include="helper\glutils.cpp" />
+    <ClCompile Include="helper\stb\stb_image.cpp" />
+    <ClCompile Include="helper\texture.cpp" />
     <ClCompile Include="imgui\backend\imgui_impl_glfw.cpp" />
     <ClCompile Include="imgui\backend\imgui_impl_opengl3.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
@@ -162,8 +164,10 @@
     <ClCompile Include="imgui\imgui_tables.cpp" />
     <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="model\cube.cpp" />
     <ClCompile Include="model\objmesh.cpp" />
     <ClCompile Include="model\plane.cpp" />
+    <ClCompile Include="model\skybox.cpp" />
     <ClCompile Include="model\teapot.cpp" />
     <ClCompile Include="model\torus.cpp" />
     <ClCompile Include="model\trianglemesh.cpp" />
@@ -175,10 +179,16 @@
     <None Include="shader\basicFlatShader.vert" />
     <None Include="shader\basicShader.frag" />
     <None Include="shader\basicShader.vert" />
+    <None Include="shader\blinnPhongAlphaMapShader.frag" />
+    <None Include="shader\blinnPhongAlphaMapShader.vert" />
     <None Include="shader\blinnPhongFlatShader.frag" />
     <None Include="shader\blinnPhongFlatShader.vert" />
     <None Include="shader\blinnPhongShader.frag" />
     <None Include="shader\blinnPhongShader.vert" />
+    <None Include="shader\blinnPhongSkyboxReflectionShader.frag" />
+    <None Include="shader\blinnPhongSkyboxReflectionShader.vert" />
+    <None Include="shader\experimental_blinnPhongShader.frag" />
+    <None Include="shader\experimental_blinnPhongShader.vert" />
     <None Include="shader\gouraudFlatShader.frag" />
     <None Include="shader\gouraudFlatShader.vert" />
     <None Include="shader\gouraudShader.frag" />
@@ -187,6 +197,8 @@
     <None Include="shader\phongFlatShader.vert" />
     <None Include="shader\phongShader.frag" />
     <None Include="shader\phongShader.vert" />
+    <None Include="shader\skyboxShader.frag" />
+    <None Include="shader\skyboxShader.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
@@ -197,6 +209,7 @@
     <ClInclude Include="helper\scenerunner.h" />
     <ClInclude Include="helper\stb\stb_image.h" />
     <ClInclude Include="helper\stb\stb_image_write.h" />
+    <ClInclude Include="helper\texture.h" />
     <ClInclude Include="helper\utils.h" />
     <ClInclude Include="imgui\backend\imgui_impl_glfw.h" />
     <ClInclude Include="imgui\backend\imgui_impl_opengl3.h" />
@@ -209,9 +222,11 @@
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="lightInfo.h" />
     <ClInclude Include="materialInfo.h" />
+    <ClInclude Include="model\cube.h" />
     <ClInclude Include="model\drawable.h" />
     <ClInclude Include="model\objmesh.h" />
     <ClInclude Include="model\plane.h" />
+    <ClInclude Include="model\skybox.h" />
     <ClInclude Include="model\teapot.h" />
     <ClInclude Include="model\teapotdata.h" />
     <ClInclude Include="model\torus.h" />
