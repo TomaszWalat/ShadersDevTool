@@ -7,33 +7,78 @@ Cube::Cube( GLfloat side )
     GLfloat side2 = side / 2.0f;
 
     std::vector<GLfloat> p = {
-        // Front
-       -side2, -side2, side2, side2, -side2, side2, side2,  side2, side2,  -side2,  side2, side2,
+        // original  
+       // // Front
+       //-side2, -side2, side2,    side2, -side2, side2,    side2,  side2, side2,   -side2,  side2, side2,
+       //// Right
+       // side2, -side2, side2,    side2, -side2, -side2,   side2,  side2, -side2,   side2,  side2, side2,
+       //// Back
+       //-side2, -side2, -side2,  -side2,  side2, -side2,   side2, side2, -side2,   side2, -side2, -side2,
+       //// Left
+       //-side2, -side2, side2,   -side2,  side2, side2,   -side2, side2, -side2,    -side2, -side2, -side2,
+       //// Bottom
+       //-side2, -side2, side2,   -side2, -side2, -side2,   side2, -side2, -side2,   side2, -side2, side2,
+       //// Top
+       //-side2,  side2, side2,   side2,  side2, side2,    side2,  side2, -side2,    -side2,  side2, -side2
+
+
+    	// Front
+       -side2, -side2, side2,    side2, -side2, side2,    side2,  side2, side2,   -side2,  side2, side2,
        // Right
-        side2, -side2, side2, side2, -side2, -side2, side2,  side2, -side2, side2,  side2, side2,
+        side2, -side2, side2,    side2, -side2, -side2,   side2,  side2, -side2,   side2,  side2, side2,
        // Back
-       -side2, -side2, -side2, -side2,  side2, -side2, side2,  side2, -side2, side2, -side2, -side2,
+       side2, -side2, -side2,   -side2, -side2, -side2,  -side2,  side2, -side2,   side2, side2, -side2,   
        // Left
-       -side2, -side2, side2, -side2,  side2, side2, -side2,  side2, -side2, -side2, -side2, -side2,
+       -side2, -side2, -side2,  -side2, -side2, side2,   -side2,  side2, side2,   -side2, side2, -side2,    
        // Bottom
-       -side2, -side2, side2, -side2, -side2, -side2, side2, -side2, -side2, side2, -side2, side2,
+    	-side2, -side2, -side2,   side2, -side2, -side2,   side2, -side2, side2,   -side2, -side2, side2,
        // Top
-       -side2,  side2, side2, side2,  side2, side2, side2,  side2, -side2, -side2,  side2, -side2
+       -side2,  side2, side2,   side2,  side2, side2,    side2,  side2, -side2,    -side2,  side2, -side2
     };
 
     std::vector<GLfloat> n = {
         // Front
-        0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, 1.0f,
         // Right
-        1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f, 0.0f,
         // Back
-        0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f,
+        0.0f, 0.0f, -1.0f,   0.0f, 0.0f, -1.0f,   0.0f, 0.0f, -1.0f,   0.0f, 0.0f, -1.0f,
         // Left
-        -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
+        -1.0f, 0.0f, 0.0f,   -1.0f, 0.0f, 0.0f,   -1.0f, 0.0f, 0.0f,   -1.0f, 0.0f, 0.0f,
         // Bottom
-        0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f,
+        0.0f, -1.0f, 0.0f,   0.0f, -1.0f, 0.0f,   0.0f, -1.0f, 0.0f,   0.0f, -1.0f, 0.0f,
         // Top
-        0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f
+        0.0f, 1.0f, 0.0f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, 0.0f,    0.0f, 1.0f, 0.0f
+    };
+
+    std::vector<GLfloat> tang = {
+        //
+        //// Front
+        //1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f, 
+        //// Right
+        //0.0f, 0.0f, -1.0f, 1.0f,   0.0f, 0.0f, -1.0f, 1.0f,   0.0f, 0.0f, -1.0f, 1.0f,   0.0f, 0.0f, -1.0f, 1.0f,
+        //// Back
+        //-1.0f, 0.0f, 0.0f, 1.0f,   -1.0f, 0.0f, 0.0f, 1.0f,   -1.0f, 0.0f, 0.0f, 1.0f,   -1.0f, 0.0f, 0.0f, 1.0f,
+        //// Left
+        //0.0f, 0.0f, 1.0f, 1.0f,   0.0f, 0.0f, 1.0f, 1.0f,   0.0f, 0.0f, 1.0f, 1.0f,   0.0f, 0.0f, 1.0f, 1.0f,
+        //// Bottom
+        //1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f,
+        //// Top
+        //1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f,
+
+
+        // Front
+        1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f, 
+        // Right
+        0.0f, 0.0f, -1.0f, 1.0f,   0.0f, 0.0f, -1.0f, 1.0f,   0.0f, 0.0f, -1.0f, 1.0f,   0.0f, 0.0f, -1.0f, 1.0f,
+        // Back
+        -1.0f, 0.0f, 0.0f, 1.0f,   -1.0f, 0.0f, 0.0f, 1.0f,   -1.0f, 0.0f, 0.0f, 1.0f,   -1.0f, 0.0f, 0.0f, 1.0f,
+        // Left
+        0.0f, 0.0f, 1.0f, 1.0f,   0.0f, 0.0f, 1.0f, 1.0f,   0.0f, 0.0f, 1.0f, 1.0f,   0.0f, 0.0f, 1.0f, 1.0f,
+        // Bottom
+        1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f,
+        // Top
+        1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f,
     };
 
     std::vector<GLfloat> tex = {
@@ -60,5 +105,5 @@ Cube::Cube( GLfloat side )
         20,21,22,20,22,23
     };
 
-    initBuffers(&el, &p, &n, &tex);
+    initBuffers(&el, &p, &n, &tex, &tang);
 }

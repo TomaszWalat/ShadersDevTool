@@ -5,7 +5,7 @@
 
 struct MaterialInfo
 {
-	glm::vec3 colour = glm::vec3(1.0f);
+	glm::vec4 colour = glm::vec4(0.0f);
 
 	GLfloat ambient = 0.1f;
 	GLfloat diffuse = 1.0f;

@@ -8,6 +8,7 @@
 
 #include "helper/scene.h"
 #include "helper/glslprogram.h"
+#include "helper/texture.h"
 #include "model/cube.h"
 
 #include "model/plane.h"
@@ -46,6 +47,46 @@ public:
     void render();
     void resize(int, int);
     void changeShader(std::string shaderName);
+
+private:
+    struct Textures
+	{
+
+		GLuint brick_Albedo =				Texture::loadTexture("../PrototypeShadersDevTool/media/texture/brick/brick1.jpg");
+		GLuint brick_NormalMap =			Texture::loadTexture("../PrototypeShadersDevTool/media/texture/brick/NormalMap.png");
+		GLuint brick_DisplacementMap =		Texture::loadTexture("../PrototypeShadersDevTool/media/texture/brick/DisplacementMap.png");
+		GLuint brick_AmbientOcclusionMap =  Texture::loadTexture("../PrototypeShadersDevTool/media/texture/brick/AmbientOcclusionMap.png");
+		GLuint brick_SpecularMap =			Texture::loadTexture("../PrototypeShadersDevTool/media/texture/brick/SpecularMap.png");
+
+		GLuint ogre_Albedo =				Texture::loadTexture("../PrototypeShadersDevTool/media/texture/ogre/ogre_diffuse.png");
+		GLuint ogre_NormalMap =				Texture::loadTexture("../PrototypeShadersDevTool/media/texture/ogre/ogre_normalmap.png");
+		GLuint ogre_AmbientOcclusionMap =	Texture::loadTexture("../PrototypeShadersDevTool/media/texture/ogre/ao_ears.png");
+		
+		//GLuint ripple_Albedo =				Texture::loadTexture("../PrototypeShadersDevTool/media/texture/ripple/ ---");
+		GLuint ripple_NormalMap =			Texture::loadTexture("../PrototypeShadersDevTool/media/texture/ripple/NormalMap_invertedR.png");
+		GLuint ripple_DisplacementMap =		Texture::loadTexture("../PrototypeShadersDevTool/media/texture/ripple/DisplacementMap.png");
+		GLuint ripple_AmbientOcclusionMap = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/ripple/AmbientOcclusionMap.png");
+		GLuint ripple_SpecularMap =			Texture::loadTexture("../PrototypeShadersDevTool/media/texture/ripple/SpecularMap.png");
+
+		GLuint wood_Albedo =				Texture::loadTexture("../PrototypeShadersDevTool/media/texture/wood/Albedo.jpg");
+		GLuint wood_Roughness =				Texture::loadTexture("../PrototypeShadersDevTool/media/texture/wood/Roughness.jpg");
+		GLuint wood_NormalMap =				Texture::loadTexture("../PrototypeShadersDevTool/media/texture/wood/NormalMap.png");
+		GLuint wood_DisplacementMap =		Texture::loadTexture("../PrototypeShadersDevTool/media/texture/wood/DisplacementMap.png");
+		GLuint wood_AmbientOcclusionMap =	Texture::loadTexture("../PrototypeShadersDevTool/media/texture/wood/AmbientOcclusionMap.png");
+		GLuint wood_SpecularMap =			Texture::loadTexture("../PrototypeShadersDevTool/media/texture/wood/SpecularMap.png");
+
+		GLuint blueWater =					Texture::loadTexture("../PrototypeShadersDevTool/media/texture/bluewater.png");
+		GLuint fire =						Texture::loadTexture("../PrototypeShadersDevTool/media/texture/fire.png");
+		GLuint smoke =						Texture::loadTexture("../PrototypeShadersDevTool/media/texture/smoke.png");
+		GLuint star =						Texture::loadTexture("../PrototypeShadersDevTool/media/texture/star.png");
+
+		GLuint cement =						Texture::loadTexture("../PrototypeShadersDevTool/media/texture/cement.jpg");
+		GLuint flower =						Texture::loadTexture("../PrototypeShadersDevTool/media/texture/flower.png");
+		GLuint textile =					Texture::loadTexture("../PrototypeShadersDevTool/media/texture/textile.png");
+		GLuint moss =						Texture::loadTexture("../PrototypeShadersDevTool/media/texture/moss.png");
+		GLuint spotCow_Albedo =				Texture::loadTexture("../PrototypeShadersDevTool/media/texture/spot_texture.png");
+
+	} textures;
 };
 
 #endif // SCENEBASIC_UNIFORM_H

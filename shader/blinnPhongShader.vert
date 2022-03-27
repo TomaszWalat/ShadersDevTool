@@ -12,6 +12,7 @@ out vec3 Tangent;
 out vec3 Binormal;
 out vec3 LightDirection;
 out vec3 ViewDirection;
+out mat3 TBN_Matrix;
 
 
 uniform vec4 LightPosition;
@@ -27,22 +28,25 @@ void main()
 {
     Position = ModelViewMatrix * ObjectModelMatrix * vec4(VertexPosition, 1.0);
 
-    Normal = normalize(NormalMatrix * VertexNormal);
-
     TexCoord = VertexTexCoord;
 
+    Normal = normalize(NormalMatrix * VertexNormal);
+
     Tangent = normalize(NormalMatrix * vec3(VertexTangent));
+//    Tangent = normalize(Tangent - dot(Tangent, Normal) * Normal);
 
     Binormal = normalize(cross(Normal, Tangent)) * VertexTangent.w;
 
-    mat3 toObjLocal = mat3(Tangent.x, Binormal.x, Normal.x, 
-                           Tangent.y, Binormal.y, Normal.y,
-                           Tangent.z, Binormal.z, Normal.z);
+    TBN_Matrix = mat3(Tangent.x, Binormal.x, Normal.x, 
+                      Tangent.y, Binormal.y, Normal.y,
+                      Tangent.z, Binormal.z, Normal.z);
 
-    vec4 lPosition = ModelViewMatrix * LightPosition;
-    LightDirection = toObjLocal * normalize((Position * lPosition.w) - lPosition).xyz;
+    vec4 lPos = ModelViewMatrix * LightPosition;
+
+//    LightDirection = TBN_Matrix * normalize((Position * lPos.w) - lPos).xyz;
+    LightDirection = TBN_Matrix * normalize(lPos).xyz;
 //    LightDirection = toObjLocal * (LightPosition - Position).xyz;
-    ViewDirection = toObjLocal * normalize(-Position).xyz;
+    ViewDirection = TBN_Matrix * normalize(Position).xyz;
 
     gl_Position = MVP * ObjectModelMatrix * vec4(VertexPosition, 1.0);
 }

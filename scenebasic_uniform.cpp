@@ -10,7 +10,7 @@
 #include <string>
 
 #include "helper/glutils.h"
-#include "helper/texture.h"
+//#include "helper/texture.h"
 
 #include "imgui/imgui.h"
 
@@ -136,35 +136,44 @@ void SceneBasic_Uniform::initScene()
 	progs[currentProg].setUniform("Ls", vec3(1.0f, 1.0f, 1.0f));
 	progs[currentProg].setUniform("LightPosition", model * view * vec4(5.0f, 5.0f, 2.0f, 1.0f));*/
 
-	skybox.material.skyboxCubeMap = Texture::loadHdrCubeMap("../PrototypeShadersDevTool/media/texture/cube/pisa-hdr/pisa");
+	//skybox.material.skyboxCubeMap = Texture::loadHdrCubeMap("../PrototypeShadersDevTool/media/texture/cube/pisa-hdr/pisa");
+	skybox.material.skyboxCubeMap = Texture::loadCubeMap("../PrototypeShadersDevTool/media/texture/skybox/lake180", ".jpg");
 	//skybox.material.skyboxCubeMap = Texture::loadCubeMap("../PrototypeShadersDevTool/media/texture/cube/pisa/pisa");
 	
-	floor.material.albedoTex = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/cement.jpg");
-	floor.material.detailTex = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/cement.jpg");
+	floor.material.albedoTex = textures.cement;
+	floor.material.detailTex = textures.cement;
 	//floor.material.detailTex = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/cube/pisa/pisa_negx.png");
 
-	metalCube.material.normalMap = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/rippleCube/NormalMap.png");
-	metalCube.material.displacementMap = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/rippleCube/DisplacementMap.png");
-	metalCube.material.ambientOcclusionMap = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/rippleCube/AmbientOcclusionMap.png");
-	metalCube.material.specularMap = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/rippleCube/SpecularMap.png");
+	//metalCube.material.albedoTex = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/rippleCube/AmbientOcclusionMap.png");
+	//metalCube.material.albedoTex = textures.ripple_SpecularMap;
+	//metalCube.material.detailTex = textures.ripple_SpecularMap;
+	metalCube.material.normalMap = textures.ripple_NormalMap;
+	//metalCube.material.displacementMap = textures.ripple_DisplacementMap;
+	//metalCube.material.ambientOcclusionMap = textures.ripple_AmbientOcclusionMap;
+	//metalCube.material.specularMap = textures.ripple_SpecularMap;
+	metalCube.material.colour = vec4(1.0f);
 
-	box.material.albedoTex = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/brick1.jpg");
-	box.material.detailTex = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/moss.png");
-	box.material.alphaMap = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/fire.png");
+	box.material.albedoTex = textures.brick_Albedo;
+	box.material.detailTex = textures.moss;
+	//box.material.alphaMap = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/brick/brick1.jpg");
+	box.material.normalMap = textures.brick_NormalMap;
+	box.material.displacementMap = textures.brick_DisplacementMap;
+	box.material.ambientOcclusionMap = textures.brick_AmbientOcclusionMap;
+	box.material.specularMap = textures.brick_SpecularMap;
 
-	torus.material.albedoTex = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/hardwood2_diffuse.jpg");
-	torus.material.detailTex = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/hardwood2_roughness.jpg");
+	torus.material.albedoTex = textures.wood_Albedo;
+	torus.material.detailTex = textures.wood_Albedo;
 
-	teapot.material.albedoTex = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/hardwood2_diffuse.jpg");
-	teapot.material.detailTex = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/hardwood2_diffuse.jpg");
-	teapot.material.alphaMap = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/bluewater.png");
+	teapot.material.albedoTex = textures.wood_Albedo;
+	teapot.material.detailTex = textures.wood_Albedo;
+	//teapot.material.alphaMap = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/bluewater.png");
 
-	piggy->material.albedoTex = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/hardwood2_diffuse.jpg");
-	piggy->material.detailTex = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/hardwood2_diffuse.jpg");
+	piggy->material.albedoTex = textures.spotCow_Albedo;
+	piggy->material.detailTex = textures.spotCow_Albedo;
 
 
-	ogre->material.albedoTex = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/ogre/ogre_diffuse.png");
-	ogre->material.normalMap = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/ogre/ogre_normalmap.png");
+	ogre->material.albedoTex = textures.ogre_Albedo;
+	ogre->material.normalMap = textures.ogre_NormalMap;
 
 	//activate and bind texture
 	glActiveTexture(GL_TEXTURE0);
@@ -174,16 +183,19 @@ void SceneBasic_Uniform::initScene()
 
 	skybox.modelMatrix = m;
 
-	m = glm::translate(mat4(1.0f), vec3(0.0f, -5.0f, 0.0f));
+	m = glm::translate(mat4(1.0f), vec3(0.0f, -1.0f, 0.0f));
 	floor.modelMatrix = m;
 
-	m = glm::rotate(mat4(1.0f), glm::radians(-45.0f), vec3(1.0f, 0.0f, 0.0f));
-	m = glm::rotate(m, glm::radians(-45.0f), vec3(0.0f, -1.0f, 1.0f));
-	m = glm::translate(m, vec3(-5.0f, 2.5f, -5.0f));
+	//m = glm::rotate(mat4(1.0f), glm::radians(-45.0f), vec3(1.0f, 0.0f, 0.0f));
+	//m = glm::rotate(m, glm::radians(-45.0f), vec3(0.0f, -1.0f, 1.0f));
+	//m = glm::translate(m, vec3(-5.0f, 2.5f, -5.0f));
+	//metalCube.modelMatrix = m;
+	
+	m = glm::translate(mat4(1.0f), vec3(-6.0f, 0.0f, -0.5f));
 	box.modelMatrix = m;
 
 	m = glm::rotate(mat4(1.0f), glm::radians(135.0f), vec3(0.0f, 1.0f, 0.0f));
-	m = glm::translate(m, vec3(-5.0f, 0.0f, 3.0f));
+	m = glm::translate(m, vec3(-6.5f, 0.0f, 3.5f));
 	teapot.modelMatrix = m;
 	
 	m = glm::rotate(mat4(1.0f), glm::radians(-45.0f), vec3(1.0f, 0.0f, 0.0f));
@@ -191,11 +203,12 @@ void SceneBasic_Uniform::initScene()
 	torus.modelMatrix = m;
 
 	m = glm::scale(mat4(1.0f), vec3(2.0f));
-	m = glm::translate(m, vec3(-2.0f, 0.5f, 0.0f));
+	m = glm::translate(m, vec3(-3.0f, 1.0f, 0.0f));
 	piggy->modelMatrix = m;
 
 	m = glm::scale(mat4(1.0f), vec3(2.0f));
-	//m = glm::translate(m, vec3(-2.0f, 0.5f, 0.0f));
+	m = glm::rotate(m, glm::radians(-45.0f), vec3(0.0f, 1.0f, 0.0f));
+	m = glm::translate(m, vec3(0.0f, 2.0f, -3.0f));
 	ogre->modelMatrix = m;
 
 	//floor.material.ambient = 0.1f;
@@ -314,7 +327,7 @@ void SceneBasic_Uniform::setMeshUniforms(TriangleMesh* mesh)
 
 
 
-	mesh = nullptr;
+	//mesh = nullptr;
 }
 
 void SceneBasic_Uniform::drawGUI()
@@ -352,29 +365,18 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::SliderFloat("Diffuse##floor", &floor.material.diffuse, 0.0f, 1.0f);
 		ImGui::SliderFloat("Specular##floor", &floor.material.specular, 0.0f, 1.0f);
 		ImGui::SliderFloat("Shininess##floor", &floor.material.shininess, 0.0f, 256.0f);
-		ImGui::ColorEdit3("Colour##floor", glm::value_ptr(floor.material.colour));
+		ImGui::ColorEdit4("Colour##floor", glm::value_ptr(floor.material.colour));
 	}
 	ImGui::Separator();
 	ImGui::Spacing();
-
-	if(ImGui::CollapsingHeader("Metal Cube"))
-	{
-		ImGui::SliderFloat("Ambient##metalCube", &metalCube.material.ambient, 0.0f, 1.0f);
-		ImGui::SliderFloat("Diffuse##metalCube", &metalCube.material.diffuse, 0.0f, 1.0f);
-		ImGui::SliderFloat("Specular##metalCube", &metalCube.material.specular, 0.0f, 1.0f);
-		ImGui::SliderFloat("Shininess##metalCube", &metalCube.material.shininess, 0.0f, 256.0f);
-		ImGui::ColorEdit3("Colour##metalCube", glm::value_ptr(metalCube.material.colour));
-	}
-	ImGui::Separator();
-	ImGui::Spacing();
-
+	
 	if(ImGui::CollapsingHeader("Box"))
 	{
 		ImGui::SliderFloat("Ambient##box", &box.material.ambient, 0.0f, 1.0f);
 		ImGui::SliderFloat("Diffuse##box", &box.material.diffuse, 0.0f, 1.0f);
 		ImGui::SliderFloat("Specular##box", &box.material.specular, 0.0f, 1.0f);
 		ImGui::SliderFloat("Shininess##box", &box.material.shininess, 0.0f, 256.0f);
-		ImGui::ColorEdit3("Colour##box", glm::value_ptr(box.material.colour));
+		ImGui::ColorEdit4("Colour##box", glm::value_ptr(box.material.colour));
 	}
 	ImGui::Separator();
 	ImGui::Spacing();
@@ -385,7 +387,7 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::SliderFloat("Diffuse##torus", &torus.material.diffuse, 0.0f, 1.0f);
 		ImGui::SliderFloat("Specular##torus", &torus.material.specular, 0.0f, 1.0f);
 		ImGui::SliderFloat("Shininess##torus", &torus.material.shininess, 0.0f, 256.0f);
-		ImGui::ColorEdit3("Colour##torus", glm::value_ptr(torus.material.colour));
+		ImGui::ColorEdit4("Colour##torus", glm::value_ptr(torus.material.colour));
 	}
 	ImGui::Separator();
 	ImGui::Spacing();
@@ -396,7 +398,7 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::SliderFloat("Diffuse##teapot", &teapot.material.diffuse, 0.0f, 1.0f);
 		ImGui::SliderFloat("Specular##teapot", &teapot.material.specular, 0.0f, 1.0f);
 		ImGui::SliderFloat("Shininess##teapot", &teapot.material.shininess, 0.0f, 256.0f);
-		ImGui::ColorEdit3("Colour##teapot", glm::value_ptr(teapot.material.colour));
+		ImGui::ColorEdit4("Colour##teapot", glm::value_ptr(teapot.material.colour));
 	}
 	ImGui::Separator();
 	ImGui::Spacing();
@@ -407,18 +409,29 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::SliderFloat("Diffuse##piggy", &piggy->material.diffuse, 0.0f, 1.0f);
 		ImGui::SliderFloat("Specular##piggy", &piggy->material.specular, 0.0f, 1.0f);
 		ImGui::SliderFloat("Shininess##piggy", &piggy->material.shininess, 0.0f, 256.0f);
-		ImGui::ColorEdit3("Colour##piggy", glm::value_ptr(piggy->material.colour));
+		ImGui::ColorEdit4("Colour##piggy", glm::value_ptr(piggy->material.colour));
 	}
 	ImGui::Separator();
 	ImGui::Spacing();
 	
+	if(ImGui::CollapsingHeader("Metal Cube"))
+	{
+		ImGui::SliderFloat("Ambient##metalCube", &metalCube.material.ambient, 0.0f, 1.0f);
+		ImGui::SliderFloat("Diffuse##metalCube", &metalCube.material.diffuse, 0.0f, 1.0f);
+		ImGui::SliderFloat("Specular##metalCube", &metalCube.material.specular, 0.0f, 1.0f);
+		ImGui::SliderFloat("Shininess##metalCube", &metalCube.material.shininess, 0.0f, 256.0f);
+		ImGui::ColorEdit4("Colour##metalCube", glm::value_ptr(metalCube.material.colour));
+	}
+	ImGui::Separator();
+	ImGui::Spacing();
+
 	if(ImGui::CollapsingHeader("Ogre"))
 	{
 		ImGui::SliderFloat("Ambient##ogre", &ogre->material.ambient, 0.0f, 1.0f);
 		ImGui::SliderFloat("Diffuse##ogre", &ogre->material.diffuse, 0.0f, 1.0f);
 		ImGui::SliderFloat("Specular##ogre", &ogre->material.specular, 0.0f, 1.0f);
 		ImGui::SliderFloat("Shininess##ogre", &ogre->material.shininess, 0.0f, 256.0f);
-		ImGui::ColorEdit3("Colour##ogre", glm::value_ptr(ogre->material.colour));
+		ImGui::ColorEdit4("Colour##ogre", glm::value_ptr(ogre->material.colour));
 	}
 	ImGui::Separator();
 	ImGui::Spacing();
@@ -509,32 +522,13 @@ void SceneBasic_Uniform::render()
 	progs.at(currentProg)->setUniform("NormalMatrix", mat3(mv[0], mv[1], mv[2]));
 	piggy->render();*/
 
-	//glDepthMask(GL_FALSE);
 	std::string currentShader = currentProg;
-	changeShader("Skybox Shader");
-	//progs.at("Skybox Shader")->use();
-	//setMatrices();
-	//progs.at(currentProg)->setUniform("MVP", cam->getProjection() * cam->getView() * cam->getModel());
-	//progs.at(currentProg)->setUniform("ModelMatrix", cam->getModel());
-	//progs.at(currentProg)->setUniform("ViewMatrix", cam->getView());
-	//progs.at(currentProg)->setUniform("ProjectionMatrix", cam->getProjection());
-	progs.at(currentProg)->setUniform("ViewProjectionMatrix", (cam->getProjection() * cam->getView()));
-	//setMeshUniforms(&skybox);
-	////activate and bindtexture
-	/*glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.material.skyboxCubeMap);*/
-	skybox.render();
-	changeShader(currentShader);
-	//progs.at(currentShader)->use();
-	//glDepthMask(GL_TRUE);
 
 	setMatrices();
 
 	setMeshUniforms(&floor);
 	floor.render();
 
-	//setMeshUniforms(&metalCube);
-	//metalCube.render();
 
 	setMeshUniforms(&box);
 	box.render();
@@ -548,15 +542,32 @@ void SceneBasic_Uniform::render()
 	setMeshUniforms(piggy.get());
 	piggy->render();
 
+	
+
 	changeShader("(experimental) Blinn-Phong Shader");
 	setMatrices();
+
 	progs.at(currentProg)->setUniform("La", light.La);
 	progs.at(currentProg)->setUniform("Ld", light.Ld);
 	progs.at(currentProg)->setUniform("Ls", light.Ls);
 	progs.at(currentProg)->setUniform("LightPosition", light.Position);
+
+	setMeshUniforms(&metalCube);
+	metalCube.render();
+
 	setMeshUniforms(ogre.get());
 	ogre->render();
+
 	changeShader(currentShader);
+
+
+
+	//glDepthMask(GL_FALSE);
+	changeShader("Skybox Shader");
+	progs.at(currentProg)->setUniform("ViewProjectionMatrix", (cam->getProjection() * cam->getView()));
+	skybox.render();
+	changeShader(currentShader);
+	//glDepthMask(GL_TRUE);
 
 }
 
