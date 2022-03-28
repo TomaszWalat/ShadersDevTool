@@ -26,7 +26,7 @@
 <details>
  <summary>Show</summary>
  
-[![Project developer walkthrough](https://img.youtube.com/vi/GZvmaqk5AOQ/0.jpg)](https://www.youtube.com/watch?v=GZvmaqk5AOQ)
+[![Project developer walkthrough]()]()
 
 </details>
 
@@ -56,11 +56,11 @@ Controls are ignored if the mouse courser is hovering over a GUI panel.
 <details>
 <summary>Pictures</summary>
 
-<img src="https://user-images.githubusercontent.com/33025239/152699702-8e6b8587-579b-42bc-8f82-5d13d2266bcc.png" alt="Camera data" width="" height="">
+<img src="" alt="Camera data" width="" height="">
 
-<img src="https://user-images.githubusercontent.com/33025239/152699716-4c8495a2-95eb-4c46-9ebf-0170b5dd6f74.png" alt="Object hierarchy" width="" height="">
+<img src="" alt="Object hierarchy" width="" height="">
 
-<img src="https://user-images.githubusercontent.com/33025239/152699710-b7206de0-ac94-4bf2-aa0e-379f9d1e6f06.png" alt="UI Debug Info" width="" height="">
+<img src="" alt="UI Debug Info" width="" height="">
 </details>
   
   
