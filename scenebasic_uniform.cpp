@@ -19,22 +19,6 @@ using glm::vec4;
 using glm::mat3;
 using glm::mat4;
 
-//
-//struct MetrialInfo
-//{
-//	vec3 Ka = vec3(0.1f, 0.1f, 1.0f);
-//	vec3 Kd = vec3(0.1f, 0.1f, 1.0f);
-//	vec3 Ks = vec3(1.0f, 1.0f, 1.0f);
-//	GLfloat Shininess = 64.0f;
-//} torusMaterial;
-//
-//struct LightInfo
-//{
-//	vec3 La = vec3(0.1f, 0.1f, 0.1f);
-//	vec3 Ld = vec3(0.5f, 0.5f, 0.5f);
-//	vec3 Ls = vec3(1.0f, 1.0f, 1.0f);
-//	vec4 Position = vec4(5.0f, 5.0f, 5.0f, 0.0f);
-//} light;
 
 std::vector<std::vector<std::string>> shaders  {
 	//{"Basic Shader",
@@ -65,17 +49,17 @@ std::vector<std::vector<std::string>> shaders  {
 	//	"shader/blinnPhongFlatShader.vert",
 	//	"shader/blinnPhongFlatShader.frag"},
 
-	{"Skybox Blinn-Phong Shader",
-		"shader/blinnPhongSkyboxReflectionShader.vert",
-		"shader/blinnPhongSkyboxReflectionShader.frag"},
+	{"Blinn-Phong Shader",
+		"shader/blinnPhongShader.vert",
+		"shader/blinnPhongShader.frag"},
 
 	{"Skybox Shader",
 		"shader/skyboxShader.vert",
 		"shader/skyboxShader.frag"},
 
-	{"(experimental) Blinn-Phong Shader",
-		"shader/blinnPhongShader.vert",
-		"shader/blinnPhongShader.frag"},
+	{"Blinn-Phong Normal Map Shader",
+		"shader/blinnPhongShader_normalMap.vert",
+		"shader/blinnPhongShader_normalMap.frag"},
 
 };
 
@@ -86,8 +70,8 @@ SceneBasic_Uniform::SceneBasic_Uniform() : skybox(100.0f),
 										   torus(0.7f, 0.3f, 25, 25),
 										   teapot(10, mat4(1.0f))
 {
-	piggy = ObjMesh::load("../PrototypeShadersDevTool/media/pig_triangulated.obj", true);
-	ogre = ObjMesh::load("../PrototypeShadersDevTool/media/bs_ears.obj", false, true);
+	piggy = ObjMesh::load("media/pig_triangulated.obj", true);
+	ogre = ObjMesh::load("media/bs_ears.obj", false, true);
 }
 
 void SceneBasic_Uniform::initScene()
@@ -109,46 +93,15 @@ void SceneBasic_Uniform::initScene()
     compile();
 
 	glEnable(GL_DEPTH_TEST);
-
-	//model = mat4(1.0f);
-	//model[3][1] = -2.5f;
-
-	//view = lookAt(vec3(0.0f, 0.0f, 2.50f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
-
-	//projection = mat4(1.0f);
-	/*
-	progs.at(currentProg)->setUniform("Ka", vec3(0.1f, 0.1f, 1.0f));
-	progs.at(currentProg)->setUniform("Kd", vec3(0.1f, 0.1f, 1.0f));
-	progs.at(currentProg)->setUniform("Ks", vec3(1.0f, 1.0f, 1.0f));
-	progs.at(currentProg)->setUniform("Shininess", 64.0f);
-
-	progs.at(currentProg)->setUniform("La", vec3(0.1f, 0.1f, 0.1f));
-	progs.at(currentProg)->setUniform("Ld", vec3(0.5f, 0.5f, 0.5f));
-	progs.at(currentProg)->setUniform("Ls", vec3(1.0f, 1.0f, 1.0f));
-	progs.at(currentProg)->setUniform("LightPosition", vec4(5.0f, 5.0f, 2.0f, 0.0f));*/
-
-	/*progs[currentProg].setUniform("Ka", vec3(0.1f, 0.1f, 1.0f));
-	progs[currentProg].setUniform("Kd", vec3(0.1f, 0.1f, 1.0f));
-	progs[currentProg].setUniform("Ks", vec3(1.0f, 1.0f, 1.0f));
-
-	progs[currentProg].setUniform("La", vec3(0.1f, 0.1f, 0.1f));
-	progs[currentProg].setUniform("Ld", vec3(0.5f, 0.5f, 0.5f));
-	progs[currentProg].setUniform("Ls", vec3(1.0f, 1.0f, 1.0f));
-	progs[currentProg].setUniform("LightPosition", model * view * vec4(5.0f, 5.0f, 2.0f, 1.0f));*/
-
+	
 	// Setting object textures
 	{
 		//skybox.material.skyboxCubeMap = Texture::loadHdrCubeMap("../PrototypeShadersDevTool/media/texture/cube/pisa-hdr/pisa");
 		skybox.material.skyboxCubeMap = textures.skybox_MountainLake;
-		//skybox.material.skyboxCubeMap = Texture::loadCubeMap("../PrototypeShadersDevTool/media/texture/cube/pisa/pisa");
 		
 		floor.material.albedoTex = textures.cement;
 		//floor.material.detailTex = textures.cement;
-		//floor.material.detailTex = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/cube/pisa/pisa_negx.png");
-
-		//metalCube.material.albedoTex = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/rippleCube/AmbientOcclusionMap.png");
-		//metalCube.material.albedoTex = textures.ripple_SpecularMap;
-		//metalCube.material.detailTex = textures.ripple_SpecularMap;
+		
 		metalCube.material.normalMap = textures.ripple_NormalMap;
 		//metalCube.material.displacementMap = textures.ripple_DisplacementMap;
 		//metalCube.material.ambientOcclusionMap = textures.ripple_AmbientOcclusionMap;
@@ -156,9 +109,9 @@ void SceneBasic_Uniform::initScene()
 		metalCube.material.colour = vec4(1.0f);
 
 		box.material.albedoTex = textures.brick_Albedo;
-		box.material.detailTex = textures.moss;
+		//box.material.detailTex = textures.moss;
 		//box.material.alphaMap = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/brick/brick1.jpg");
-		box.material.normalMap = textures.brick_NormalMap;
+		//box.material.normalMap = textures.brick_NormalMap;
 		//box.material.displacementMap = textures.brick_DisplacementMap;
 		//box.material.ambientOcclusionMap = textures.brick_AmbientOcclusionMap;
 		//box.material.specularMap = textures.brick_SpecularMap;
@@ -166,11 +119,11 @@ void SceneBasic_Uniform::initScene()
 		torus.material.albedoTex = textures.wood_Albedo;
 		//torus.material.detailTex = textures.wood_Albedo;
 
-		teapot.material.albedoTex = textures.wood_Albedo;
+		//teapot.material.albedoTex = textures.wood_Albedo;
 		//teapot.material.detailTex = textures.wood_Albedo;
-		//teapot.material.alphaMap = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/bluewater.png");
+		teapot.material.alphaMap = textures.fire;
 
-		piggy->material.albedoTex = textures.spotCow_Albedo;
+		//piggy->material.albedoTex = textures.spotCow_Albedo;
 		//piggy->material.detailTex = textures.spotCow_Albedo;
 
 
@@ -195,7 +148,7 @@ void SceneBasic_Uniform::initScene()
 		box.modelMatrix = m;
 
 		m = glm::scale(mat4(1.0f), vec3(2.0f));
-		m = glm::translate(m, vec3(-3.0f, 0.9f, 0.0f));
+		m = glm::translate(m, vec3(-3.0f, 0.95f, 0.0f));
 		piggy->modelMatrix = m;
 
 		m = glm::rotate(mat4(1.0f), glm::radians(-45.0f), vec3(1.0f, 0.0f, 0.0f));
@@ -213,60 +166,63 @@ void SceneBasic_Uniform::initScene()
 		ogre->modelMatrix = m;
 
 		m = glm::rotate(mat4(1.0f), glm::radians(135.0f), vec3(0.0f, 1.0f, 0.0f));
-		m = glm::translate(m, vec3(-6.5f, 0.0f, 3.5f));
+		m = glm::translate(m, vec3(-6.5f, -1.0f, 3.5f));
 		teapot.modelMatrix = m;
 	}
 
 	// Setting object material properties
 	{
 		floor.material.ambient = 0.1f;
-		floor.material.diffuse = 1.0f;
+		floor.material.diffuse = 0.75f;
 		floor.material.specular = 1.0f;
 		floor.material.shininess = 64.0f;
 		floor.material.reflectivity = 0.5f;
 		
 		box.material.ambient = 0.1f;
-		box.material.diffuse = 1.0f;
+		box.material.diffuse = 0.75f;
 		box.material.specular = 1.0f;
 		box.material.shininess = 64.0f;
 		box.material.reflectivity = 0.5f;
 		
-		piggy->material.ambient = 0.1f;
-		piggy->material.diffuse = 1.0f;
-		piggy->material.specular = 1.0f;
-		piggy->material.shininess = 64.0f;
+		piggy->material.ambient = 0.2f;
+		piggy->material.diffuse = 0.8f;
+		piggy->material.specular = 0.1f;
+		piggy->material.shininess = 30.0f;
 		piggy->material.reflectivity = 0.5f;
+		piggy->material.colour = vec4(0.95f, 1.0f, 0.5f, 1.0f);
 		
-		metalCube.material.ambient = 0.1f;
-		metalCube.material.diffuse = 1.0f;
+		metalCube.material.ambient = 0.2f;
+		metalCube.material.diffuse = 0.5f;
 		metalCube.material.specular = 1.0f;
-		metalCube.material.shininess = 64.0f;
+		metalCube.material.shininess = 5.0f;
 		metalCube.material.reflectivity = 0.5f;
+		metalCube.material.colour = vec4(1.0f);
 
 		torus.material.ambient = 0.1f;
-		torus.material.diffuse = 1.0f;
+		torus.material.diffuse = 0.75f;
 		torus.material.specular = 1.0f;
 		torus.material.shininess = 64.0f;
 		torus.material.reflectivity = 0.5f;
 		
 		ogre->material.ambient = 0.1f;
-		ogre->material.diffuse = 1.0f;
+		ogre->material.diffuse = 0.75f;
 		ogre->material.specular = 1.0f;
 		ogre->material.shininess = 64.0f;
 		ogre->material.reflectivity = 0.5f;
 
 		teapot.material.ambient = 0.1f;
-		teapot.material.diffuse = 1.0f;
+		teapot.material.diffuse = 0.7f;
 		teapot.material.specular = 1.0f;
-		teapot.material.shininess = 64.0f;
+		teapot.material.shininess = 10.0f;
 		teapot.material.reflectivity = 0.5f;
+		teapot.material.colour = vec4(1.0f);
 	}
 
 	// Setting up lights
 	{
 		LightInfo L1 = { // Directional - Sun
-			vec4(5.0f, 5.0f, 5.0f, 0.0f),
-			vec3(0.0f, -1.0f, 0.0f),
+			vec4(8.0f, 5.0f, 5.0f, 1.0f),
+			vec3(0.0f, 0.0f, 0.0f),
 			vec3(1.0f),
 			0.1f, 0.75f, 1.0f,
 			1.0f, 0.022f,0.0019f,
@@ -274,35 +230,35 @@ void SceneBasic_Uniform::initScene()
 		};
 		lights.push_back(L1); 
 
-		//LightInfo L2 = { // Spot - 1
-		//	vec4(-2.0f, 5.0f, 0.0f, 1.0f),
-		//	vec3(0.0f, -1.0f, 0.0f),
-		//	vec3(1.0f, 0.0f, 0.0f), // Red
-		//	0.1f, 0.75f, 1.0f,
-		//	1.0f, 0.022f,0.0019f,
-		//	30.0f, 45.0f
-		//};
-		//lights.push_back(L2); 
+		LightInfo L2 = { // Spot - 1
+			vec4(-5.0f, 5.0f, 0.0f, 1.0f),
+			vec3(0.0f, -1.0f, 0.0f),
+			vec3(1.0f, 0.0f, 0.0f), // Red
+			0.1f, 0.75f, 1.0f,
+			1.0f, 0.022f,0.0019f,
+			30.0f, 45.0f
+		};
+		lights.push_back(L2); 
 
-		//LightInfo L3 = { // Spot - 2
-		//	vec4(0.0f, 5.0f, 0.0f, 1.0f),
-		//	vec3(0.0f, -1.0f, 0.0f),
-		//	vec3(0.0f, 1.0f, 0.0f), // Green
-		//	0.1f, 0.75f, 1.0f,
-		//	1.0f, 0.022f,0.0019f,
-		//	30.0f, 45.0f
-		//};
-		//lights.push_back(L3);
+		LightInfo L3 = { // Spot - 2
+			vec4(0.0f, 8.0f, -4.5f, 1.0f),
+			vec3(0.0f, -1.0f, 0.0f),
+			vec3(1.0f),
+			0.1f, 0.75f, 1.0f,
+			1.0f, 0.022f,0.0019f,
+			36.0f, 37.0f
+		};
+		lights.push_back(L3);
 
-		//LightInfo L4 = { // Spot - 3
-		//	vec4(0.0f, 5.0f, 2.0f, 1.0f),
-		//	vec3(0.0f, -1.0f, 0.0f),
-		//	vec3(0.0f, 0.0f, 1.0f), // Blue
-		//	0.1f, 0.75f, 1.0f,
-		//	1.0f, 0.022f, 0.0019f,
-		//	30.0f, 45.0f
-		//};
-		//lights.push_back(L4);
+		LightInfo L4 = { // Spot - 3
+			vec4(-6.0f, 6.0f, -6.0f, 1.0f),
+			vec3(0.0f, -1.0f, 0.0f),
+			vec3(0.0f, 0.0f, 1.0f), // Blue
+			0.1f, 0.75f, 1.0f,
+			1.0f, 0.022f, 0.0019f,
+			30.0f, 40.0f
+		};
+		lights.push_back(L4);
 
 	}
 }
@@ -323,6 +279,8 @@ void SceneBasic_Uniform::compile()
 			progs.at(s)->compileShader(shaders[i][2].c_str());
 			progs.at(s)->link();
 			progs.at(s)->use();
+
+			//progs.at(s).get()->use();
 			
 		} catch (GLSLProgramException &e) {
 			std::cerr << e.what() << std::endl;
@@ -347,7 +305,6 @@ void SceneBasic_Uniform::changeShader(std::string shaderName)
 		iterator->second->use();
 	}
 }
-
 
 void SceneBasic_Uniform::setMatrices()
 {
@@ -612,19 +569,19 @@ void SceneBasic_Uniform::drawGUI()
 	
 
 
-	ImGui::Begin("Shader Selection");
-	{
-		for(int i = 0; i < shaders.size(); i++)
-		{
-			if(ImGui::Button(shaders[i][0].c_str()))
-			{
-				changeShader(shaders[i][0]);
-			}
-			ImGui::Separator();
-			ImGui::Spacing();
-		}
-	}
-	ImGui::End();
+	//ImGui::Begin("Shader Selection");
+	//{
+	//	for(int i = 0; i < shaders.size(); i++)
+	//	{
+	//		if(ImGui::Button(shaders[i][0].c_str()))
+	//		{
+	//			changeShader(shaders[i][0]);
+	//		}
+	//		ImGui::Separator();
+	//		ImGui::Spacing();
+	//	}
+	//}
+	//ImGui::End();
 
 	progs.at(currentProg)->setUniform("AlphaDiscard", alphaDiscard);
 }
@@ -662,19 +619,19 @@ void SceneBasic_Uniform::render()
 	setMeshUniforms(&teapot);
 	teapot.render();
 
+	
+	std::string currentShader = currentProg;
+	changeShader("Blinn-Phong Normal Map Shader");
+	setMatrices();
+	setLights();
+	
 	setMeshUniforms(&metalCube);
 	metalCube.render();
 
 	setMeshUniforms(ogre.get());
 	ogre->render();
 	
-	std::string currentShader = currentProg;
-	//changeShader("(experimental) Blinn-Phong Shader");
-	//setMatrices();
-	//setLights();
-	//
-	//
-	//changeShader(currentShader);
+	changeShader(currentShader);
 
 
 
@@ -697,4 +654,3 @@ void SceneBasic_Uniform::resize(int w, int h)
 
 	projection = glm::perspective(glm::radians(70.0f), (float)w/h, 0.3f, 100.0f);
 }
-

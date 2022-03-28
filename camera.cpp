@@ -22,7 +22,7 @@ Camera::Camera()
 
 	movementSpeed = 0.05f;
 	rotationSpeed = 0.01f;
-	rotationRadius = 10.0f; 
+	rotationRadius = 15.0f; 
 	horizontalRotationCap = 3.14159f;	//  pi  ==  half circle   == 180 degrees
 	verticalRotationCap = 1.57079f;		// pi/2 == quarter circle ==  90 degrees
 	currentHorizontalRotation = 0.0f;

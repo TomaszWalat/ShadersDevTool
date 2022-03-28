@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{2424a6ac-480b-441a-94ea-86c5c10c6abf}</ProjectGuid>
-    <RootNamespace>ProjectTemplate</RootNamespace>
+    <ProjectGuid>{27ed74a3-26a0-44b3-a0d0-1dc48f2d1788}</ProjectGuid>
+    <RootNamespace>ShadersDevTool</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -72,23 +72,23 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);;G:\CGD_2021_22\COMP3015\CW1_Assigment\Dependencies\include;G:\CGD_2021_22\COMP3015\CW1_Assigment\Dependencies\include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);G:\CGD_2021_22\COMP3015\CW1_Assigment\Dependencies\lib</LibraryPath>
+    <IncludePath>$(ProjectDir)include\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);;G:\CGD_2021_22\COMP3015\CW1_Assigment\Dependencies\include;G:\CGD_2021_22\COMP3015\CW1_Assigment\Dependencies\include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);G:\CGD_2021_22\COMP3015\CW1_Assigment\Dependencies\lib</LibraryPath>
+    <IncludePath>$(ProjectDir)include\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Dependencies\include;$(IncludePath);G:\CGD_2021_22\COMP3015\CW1_Assigment\Dependencies\include;G:\CGD_2021_22\COMP3015\CW1_Assigment\Dependencies\include</IncludePath>
-    <LibraryPath>C:\Dependencies\lib;$(LibraryPath);G:\CGD_2021_22\COMP3015\CW1_Assigment\Dependencies\lib</LibraryPath>
+    <IncludePath>$(ProjectDir)include\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Dependencies\include;$(IncludePath);G:\CGD_2021_22\COMP3015\CW1_Assigment\Dependencies\include;G:\CGD_2021_22\COMP3015\CW1_Assigment\Dependencies\include</IncludePath>
-    <LibraryPath>C:\Dependencies\lib;$(LibraryPath);G:\CGD_2021_22\COMP3015\CW1_Assigment\Dependencies\lib</LibraryPath>
+    <IncludePath>$(ProjectDir)include\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -100,7 +100,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);glfw3.lib;opengl32.lib</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -117,7 +117,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);glfw3.lib;opengl32.lib</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -130,7 +130,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies);glfw3.lib;opengl32.lib</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -147,7 +147,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies);glfw3.lib;opengl32.lib</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -173,32 +173,6 @@
     <ClCompile Include="model\trianglemesh.cpp" />
     <ClCompile Include="scenebasic_uniform.cpp" />
     <ClCompile Include="sceneObject.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="shader\basicFlatShader.frag" />
-    <None Include="shader\basicFlatShader.vert" />
-    <None Include="shader\basicShader.frag" />
-    <None Include="shader\basicShader.vert" />
-    <None Include="shader\blinnPhongAlphaMapShader.frag" />
-    <None Include="shader\blinnPhongAlphaMapShader.vert" />
-    <None Include="shader\blinnPhongFlatShader.frag" />
-    <None Include="shader\blinnPhongFlatShader.vert" />
-    <None Include="shader\blinnPhongShader.frag" />
-    <None Include="shader\blinnPhongShader.vert" />
-    <None Include="shader\blinnPhongSkyboxReflectionShader.frag" />
-    <None Include="shader\blinnPhongSkyboxReflectionShader.vert" />
-    <None Include="shader\experimental_blinnPhongShader.frag" />
-    <None Include="shader\experimental_blinnPhongShader.vert" />
-    <None Include="shader\gouraudFlatShader.frag" />
-    <None Include="shader\gouraudFlatShader.vert" />
-    <None Include="shader\gouraudShader.frag" />
-    <None Include="shader\gouraudShader.vert" />
-    <None Include="shader\phongFlatShader.frag" />
-    <None Include="shader\phongFlatShader.vert" />
-    <None Include="shader\phongShader.frag" />
-    <None Include="shader\phongShader.vert" />
-    <None Include="shader\skyboxShader.frag" />
-    <None Include="shader\skyboxShader.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
@@ -233,6 +207,14 @@
     <ClInclude Include="model\trianglemesh.h" />
     <ClInclude Include="scenebasic_uniform.h" />
     <ClInclude Include="sceneObject.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shader\blinnPhongShader.frag" />
+    <None Include="shader\blinnPhongShader.vert" />
+    <None Include="shader\blinnPhongShader_normalMap.frag" />
+    <None Include="shader\blinnPhongShader_normalMap.vert" />
+    <None Include="shader\skyboxShader.frag" />
+    <None Include="shader\skyboxShader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

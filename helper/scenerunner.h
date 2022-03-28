@@ -129,6 +129,8 @@ public:
 		// Close window and terminate GLFW
 		glfwTerminate();
 
+        //int ch = getchar();
+
         // Exit program
         return EXIT_SUCCESS;
     }
