@@ -33,7 +33,7 @@ private:
 
 public:
 	Camera();
-	~Camera();
+	//~Camera();
 
 	// Movement in relation to self (i.e. screen plane)
 	void moveRight();		// +X

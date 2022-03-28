@@ -11,6 +11,7 @@ struct MaterialInfo
 	GLfloat diffuse = 1.0f;
 	GLfloat specular = 1.0f;
 	GLfloat shininess = 64.0f;
+	GLfloat reflectivity = 0.0f;
 
 	GLuint albedoTex;
 	GLuint detailTex;

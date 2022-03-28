@@ -33,10 +33,10 @@ Camera::Camera()
 	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -rotationRadius));
 }
 
-Camera::~Camera()
-{
-
-}
+//Camera::~Camera()
+//{
+//
+//}
 // -------- End of de/constructors -------- //
 
 
