@@ -100,9 +100,29 @@ vec3 computeLighting(in int lightNo, in vec3 tColour, in vec3 n)
 //--    float sDotN = max(dot(s, n), 0.0);
     float sDotN = max(dot(-s, Normal), 0.0);
 
-    colourOut += ((tColour * material.ambient) * (lights[lightNo].colour * lights[lightNo].ambient));
+    float lDistance = length(lPosition - Position) * lPosition.w;
 
-    colourOut += ((tColour * material.diffuse) * (lights[lightNo].colour * lights[lightNo].diffuse) * sDotN);
+//    float attenuation = 1.0 / (1.0 + 0.09 * lDistance + 0.032 * (lDistance * lDistance)); // for distance 50
+//    float attenuation = 1.0 / (1.0 + 0.022 * lDistance + 0.0019 * (lDistance * lDistance)); // for distance 200
+    float attenuation = 1.0 / (1.0 + lights[lightNo].attenuationLinear * lDistance + lights[lightNo].attenuationQuadratic * (lDistance * lDistance));
+
+    float intensity = 1.0f;
+    
+    vec3 lDirection =  (ModelViewMatrix * vec4(lights[lightNo].direction, 0.0)).xyz;
+
+    if((lights[lightNo].direction * lights[lightNo].position.w) != vec3(0.0))
+    {
+        float theta = dot(s, lDirection);
+        float angle = acos(theta);
+
+        float epsilon = lights[lightNo].cutoffInner - lights[lightNo].cutoffOuter;
+
+        intensity = clamp((angle - lights[lightNo].cutoffOuter) / epsilon, 0.0, 1.0);
+    }
+
+    colourOut += ((tColour * material.ambient) * (lights[lightNo].colour * lights[lightNo].ambient)) * attenuation;
+
+    colourOut += ((tColour * material.diffuse) * (lights[lightNo].colour * lights[lightNo].diffuse) * sDotN) * intensity * attenuation;
 
 
     if(sDotN > 0.0)
@@ -131,9 +151,10 @@ vec3 computeLighting(in int lightNo, in vec3 tColour, in vec3 n)
     vec3 Ls = lights[lightNo].colour * lights[lightNo].specular;
     vec3 reflectionColour = texture(Skybox, r).rgb;
 
- 		colourOut += (Ks * (Ls * reflectionColour)) * pow( max( dot(h, n), 0.0), material.shininess);
-// 		colourOut += (Ks * mix(Ls, reflectionColour, material.reflectivity)) * pow( max( dot(h, n), 0.0), material.shininess);
-// 		colour += (Ks * (Ls * (reflectionColour * material.reflectivity))) * pow( max( dot(h, n), 0.0), material.shininess);
+    colourOut += (Ks * (Ls * reflectionColour)) * pow( max( dot(h, n), 0.0), material.shininess) * intensity * attenuation;
+// 		colourOut += (Ks * (Ls * reflectionColour)) * pow( max( dot(h, n), 0.0), material.shininess);
+// 		colourOut += (Ks * mix(reflectionColour, Ls, material.reflectivity)) * pow( max( dot(h, n), 0.0), material.shininess);
+// 		colourOut += (Ks * (Ls * (reflectionColour * material.reflectivity))) * pow( max( dot(h, n), 0.0), material.shininess);
     }
 
     return colourOut;
@@ -151,6 +172,7 @@ void main() {
    
     vec3 albedoDetail = normalize(mix(albedoTexColour.rgb, detailTexColour.rgb, detailTexColour.a));
 
+//    vec3 texColour = normalize(mix(albedoDetail.rbg, material.colour.rgb, material.colour.a));
     vec3 texColour = normalize(mix(albedoTexColour.rbg, material.colour.rgb, material.colour.a));
 
     vec4 alphaMap = texture(AlphaTex, TexCoord);

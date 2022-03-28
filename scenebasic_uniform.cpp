@@ -143,7 +143,7 @@ void SceneBasic_Uniform::initScene()
 		//skybox.material.skyboxCubeMap = Texture::loadCubeMap("../PrototypeShadersDevTool/media/texture/cube/pisa/pisa");
 		
 		floor.material.albedoTex = textures.cement;
-		floor.material.detailTex = textures.cement;
+		//floor.material.detailTex = textures.cement;
 		//floor.material.detailTex = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/cube/pisa/pisa_negx.png");
 
 		//metalCube.material.albedoTex = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/rippleCube/AmbientOcclusionMap.png");
@@ -164,14 +164,14 @@ void SceneBasic_Uniform::initScene()
 		//box.material.specularMap = textures.brick_SpecularMap;
 
 		torus.material.albedoTex = textures.wood_Albedo;
-		torus.material.detailTex = textures.wood_Albedo;
+		//torus.material.detailTex = textures.wood_Albedo;
 
 		teapot.material.albedoTex = textures.wood_Albedo;
-		teapot.material.detailTex = textures.wood_Albedo;
+		//teapot.material.detailTex = textures.wood_Albedo;
 		//teapot.material.alphaMap = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/bluewater.png");
 
 		piggy->material.albedoTex = textures.spotCow_Albedo;
-		piggy->material.detailTex = textures.spotCow_Albedo;
+		//piggy->material.detailTex = textures.spotCow_Albedo;
 
 
 		ogre->material.albedoTex = textures.ogre_Albedo;
@@ -274,35 +274,35 @@ void SceneBasic_Uniform::initScene()
 		};
 		lights.push_back(L1); 
 
-		LightInfo L2 = { // Spot - 1
-			vec4(-2.0f, 5.0f, 0.0f, 1.0f),
-			vec3(0.0f, -1.0f, 0.0f),
-			vec3(1.0f, 0.0f, 0.0f), // Red
-			0.1f, 0.75f, 1.0f,
-			1.0f, 0.022f,0.0019f,
-			30.0f, 45.0f
-		};
-		lights.push_back(L2); 
+		//LightInfo L2 = { // Spot - 1
+		//	vec4(-2.0f, 5.0f, 0.0f, 1.0f),
+		//	vec3(0.0f, -1.0f, 0.0f),
+		//	vec3(1.0f, 0.0f, 0.0f), // Red
+		//	0.1f, 0.75f, 1.0f,
+		//	1.0f, 0.022f,0.0019f,
+		//	30.0f, 45.0f
+		//};
+		//lights.push_back(L2); 
 
-		LightInfo L3 = { // Spot - 2
-			vec4(0.0f, 5.0f, 0.0f, 1.0f),
-			vec3(0.0f, -1.0f, 0.0f),
-			vec3(0.0f, 1.0f, 0.0f), // Green
-			0.1f, 0.75f, 1.0f,
-			1.0f, 0.022f,0.0019f,
-			30.0f, 45.0f
-		};
-		lights.push_back(L3);
+		//LightInfo L3 = { // Spot - 2
+		//	vec4(0.0f, 5.0f, 0.0f, 1.0f),
+		//	vec3(0.0f, -1.0f, 0.0f),
+		//	vec3(0.0f, 1.0f, 0.0f), // Green
+		//	0.1f, 0.75f, 1.0f,
+		//	1.0f, 0.022f,0.0019f,
+		//	30.0f, 45.0f
+		//};
+		//lights.push_back(L3);
 
-		LightInfo L4 = { // Spot - 3
-			vec4(0.0f, 5.0f, 2.0f, 1.0f),
-			vec3(0.0f, -1.0f, 0.0f),
-			vec3(0.0f, 0.0f, 1.0f), // Blue
-			0.1f, 0.75f, 1.0f,
-			1.0f, 0.022f, 0.0019f,
-			30.0f, 45.0f
-		};
-		lights.push_back(L4);
+		//LightInfo L4 = { // Spot - 3
+		//	vec4(0.0f, 5.0f, 2.0f, 1.0f),
+		//	vec3(0.0f, -1.0f, 0.0f),
+		//	vec3(0.0f, 0.0f, 1.0f), // Blue
+		//	0.1f, 0.75f, 1.0f,
+		//	1.0f, 0.022f, 0.0019f,
+		//	30.0f, 45.0f
+		//};
+		//lights.push_back(L4);
 
 	}
 }
@@ -391,8 +391,8 @@ void SceneBasic_Uniform::setMeshUniforms(TriangleMesh* mesh)
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, mesh->material.albedoTex);
 
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, mesh->material.detailTex);
+	//glActiveTexture(GL_TEXTURE2);
+	//glBindTexture(GL_TEXTURE_2D, mesh->material.detailTex);
 
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, mesh->material.alphaMap);
@@ -584,24 +584,26 @@ void SceneBasic_Uniform::drawGUI()
 			{
 				ImGui::DragFloat4(("Position##L"+ id).c_str(), value_ptr(lights.at(i).position), 0.01f);
 				ImGui::DragFloat3(("Direction##L"+ id).c_str(), value_ptr(lights.at(i).direction), 0.01f, -1.0f, 1.0f);
+				
+				ImGui::Spacing();
 
 				ImGui::SliderFloat(("Ambient##L"+ id).c_str(), &lights.at(i).ambient, 0.0f, 1.0f);
 				ImGui::SliderFloat(("Diffuse##L"+ id).c_str(), &lights.at(i).diffuse, 0.0f, 1.0f);
 				ImGui::SliderFloat(("Specular##L"+ id).c_str(), &lights.at(i).specular, 0.0f, 1.0f);
 				ImGui::ColorEdit3(("Colour##L"+ id).c_str(), glm::value_ptr(lights.at(i).colour));
 
-				ImGui::Separator();
+				ImGui::Spacing();
 
 				ImGui::Text("Attenuation");
 				ImGui::SliderFloat(("Constant##L"+ id).c_str(), &lights.at(i).attenuationConstant, 0.0f, 1.0f);
 				ImGui::SliderFloat(("Linear##L"+ id).c_str(), &lights.at(i).attenuationLinear, 0.0f, 1.0f);
-				ImGui::SliderFloat(("Quadratic##L"+ id).c_str(), &lights.at(i).attenuationQuadratic, 0.0f, 1.0f);
+				ImGui::SliderFloat(("Quadratic##L"+ id).c_str(), &lights.at(i).attenuationQuadratic, 0.0f, 2.0f);
 				
-				ImGui::Separator();
+				ImGui::Spacing();
 
 				ImGui::Text("Cone cutoff");
-				ImGui::SliderFloat(("Inner (Phi)##L"+ id).c_str(), &lights.at(i).ambient, 0.0f, 67.5f);
-				ImGui::SliderFloat(("Outer (Gamma)##L"+ id).c_str(), &lights.at(i).ambient, 0.0f, 67.5f);
+				ImGui::SliderFloat(("Inner (Phi)##L"+ id).c_str(), &lights.at(i).cutoffInner, 0.0f, 67.5f);
+				ImGui::SliderFloat(("Outer (Gamma)##L"+ id).c_str(), &lights.at(i).cutoffOuter, 0.0f, 67.5f);
 			}
 			ImGui::PopID();
 		}
@@ -660,19 +662,19 @@ void SceneBasic_Uniform::render()
 	setMeshUniforms(&teapot);
 	teapot.render();
 
-	
-	std::string currentShader = currentProg;
-	changeShader("(experimental) Blinn-Phong Shader");
-	setMatrices();
-	setLights();
-
 	setMeshUniforms(&metalCube);
 	metalCube.render();
 
 	setMeshUniforms(ogre.get());
 	ogre->render();
-
-	changeShader(currentShader);
+	
+	std::string currentShader = currentProg;
+	//changeShader("(experimental) Blinn-Phong Shader");
+	//setMatrices();
+	//setLights();
+	//
+	//
+	//changeShader(currentShader);
 
 
 
