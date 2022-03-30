@@ -48,43 +48,124 @@ Things you'll need:
  
 The files / folders listed needed to be in the same directory - for full structure see architecture section below.
  
+Note: Unfortunatlly I believe there is a slight memory leak, which (according to analysis tools) seems to be coming from 3rd party files - this will be fixed in the future.
   
 ---
 ## Architecture
 
-Executable version structure:
+### Executable version structure:
 - `ShadersDevTool.exe`
 - `imgui.ini`
-- shader (folder) 
+- <details><summary> shader </summary> <!-- folder start -->
+ 
   - `blinnPhongShader.vert`
   - `blinnPhongShader.frag`
   - `blinnPhongShader_normalMap.vert`
   - `blinnPhongShader_normalMap.frag`
   - `skyboxShader.vert`
   - `skyboxShader.frag`
-- media (folder)
+  </details> <!-- end shader folder -->
+ 
+- <details><summary> media </summary> <!-- folder start -->
+ 
   - `bs_ears.obj`
   - `pig_triangulated.obj`
-  - texture (folder)
+ 
+  - <details><summary> texture </summary> <!-- folder start -->
+ 
     - `cement.jpg`
     - `fire.png`
     - `star.png`
-    - brick (folder)
+ 
+    - <details><summary> brick </summary> <!-- folder start -->
+ 
       - `brick1.jpg`
-    - ogre (folder)
+      </details> <!-- end brick folder -->
+ 
+    - <details><summary> ogre </summary> <!-- folder start -->
+ 
       - `ogre_diffuse.png`
       - `ogre_normalmap.png`
-    - ripple (folder)
+      </details> <!-- end ogre folder -->
+ 
+    - <details><summary> ripple </summary> <!-- folder start -->
+ 
       - `NormalMap_invertedR.png`
-    - skybox (folder)
+      </details> <!-- end ripple folder -->
+ 
+    - <details><summary> skybox </summary> <!-- folder start -->
+ 
       - `lake180_negx.jpg`
       - `lake180_negy.jpg`
       - `lake180_negz.jpg`
       - `lake180_posx.jpg`
       - `lake180_posy.jpg`
       - `lake180_posz.jpg`
-    - wood (folder)
+      </details> <!-- end skybox folder -->
+ 
+    - <details><summary> wood </summary> <!-- folder start -->
+ 
       - `Albedo.jpg`
+      </details> <!-- end wood folder -->
+ 
+    </details> <!-- end texture folder -->
+  </details> <!-- end media folder -->
+ 
+ ### Program structure:
+ - <details><summary> main.cpp </summary> 
+ 
+   - `main()` - Program entry point. Creates instance of SceneRunner and Scene, passes scene into scenerunner via `run()`.
+ </details>
+ 
+ - <details><summary> Scene </summary>
+ 
+   - defines Scene functionality and Camera cam.
+ </details>
+ 
+ - <details><summary> SceneRunner </summary> 
+ 
+   - `SceneRunner()` - sets up program window and Dear ImGui, handles programs 3D scene.
+   - `run()` - calls Scene's `setDimensions()`, `initScene()`, `resize()`, and `mainLoop()` (passing it the scene). Then, once `mainloop()` returns control, it shuts down Dear ImGui and glfw (program window), and terminates program.
+   - `mainLoop()` - keeps the program control until loop's exit (window closed or space bar is pressed). While in loop, starts new GUI frame, calls scene's `update()` then `render()`, calls `debugGUI()`, renders GUI frame, swaps GLFW buffers, and finally, polls GLFW events and calls `processInput()`.
+   - `debugGUI()` - injects debug info panel into GUI frame (for now it's just some mouse data).
+   - `processInput()` - processes GLFW window keyboard and mouse input events and calls appropriate functions.
+ </details>
+ 
+ 
+ - <details><summary> SceneBasic_Uniform (extends Scene)</summary>
+ 
+   - Textures (struct) - loads  and holds all textures required for the scene.
+   - shaders (vector) - lists shader files to compile and link togather.
+   - `SceneBasic_Uniform()` - initialises objects in scene (skybox, floor, metalCube, box, torus, teapot, piggy, ogre).
+   - `initScene()` - initialises camera (cam), calls `compile()`, maps textures to objects, positions objects in scene, sets objects' material info, populates lights vector (initialises 4 lights).
+   - `compile()` - compiles and links shaders as specified in shaders vector (as GLSLProgram objects), and places them into progs map.
+   - `changeShader()` - changes the active shader program.
+   - `setMatrices()` - updates MVP related uniforms in active shader.
+   - `setMeshUniforms()` - updates object specific uniforms (material info, object position) in active shader, based on the object it's passed.
+   - `setLights()` - updates each light's uniform data in active shader.
+   - `drawGUI()` - injects light info and object material panels into GUI frame.
+   - `update()` - updates the scene (e.g. animation of movement)
+   - `render()` - calls `drawGUI()`, each object's `render()`, and sets active shader's uniforms via setMatrices(), setLights() and setMeshUniform(); here is also where `changeShader()` is called if different shaders are used for different objects.
+ </details>
+ 
+ 
+ - <details><summary> Camera </summary>
+ 
+   -  controls the scene's camera, contains the scene's MVP.
+ </details>
+ 
+ 
+ - <details><summary> MaterialInfo (struct) </summary>
+ 
+   - material info container
+ </details>
+ 
+ 
+ - <details><summary> LightInfo (struct) </summary>
+ 
+   - light info container
+ </details>
+
  
 ---
 ## Controls
