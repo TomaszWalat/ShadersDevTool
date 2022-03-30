@@ -7,6 +7,17 @@
 - manipulate each scene light individually;
 - manipulate each scene object individually;
  
+**GLSL features**
+ - Blinn-Phong shading
+ - Skybox
+ - Multi-light setup
+ - Light attenuation for point and spot lights
+ - Skybox reflection in objects
+ - Object base colour (optional)
+ - Albedo texturing (optional)
+ - Normal mapping (optional)
+ - Alpha mapping / fragment discarding (optional)
+ 
   
 <details>
  <summary><b>Picture</b></summary>
@@ -53,7 +64,7 @@ Note: Unfortunatlly I believe there is a slight memory leak, which (according to
 ---
 ## Architecture
 
-### Executable version structure:
+### Executable version file structure:
 - `ShadersDevTool.exe`
 - `imgui.ini`
 - <details><summary> shader </summary> <!-- folder start -->
@@ -111,7 +122,7 @@ Note: Unfortunatlly I believe there is a slight memory leak, which (according to
     </details> <!-- end texture folder -->
   </details> <!-- end media folder -->
  
- ### Program structure:
+ ### Internal program structure:
  - <details><summary> main.cpp </summary> 
  
    - `main()` - Program entry point. Creates instance of SceneRunner and Scene, passes scene into scenerunner via `run()`.
@@ -131,7 +142,6 @@ Note: Unfortunatlly I believe there is a slight memory leak, which (according to
    - `processInput()` - processes GLFW window keyboard and mouse input events and calls appropriate functions.
  </details>
  
- 
  - <details><summary> SceneBasic_Uniform (extends Scene)</summary>
  
    - Textures (struct) - loads  and holds all textures required for the scene.
@@ -148,24 +158,25 @@ Note: Unfortunatlly I believe there is a slight memory leak, which (according to
    - `render()` - calls `drawGUI()`, each object's `render()`, and sets active shader's uniforms via setMatrices(), setLights() and setMeshUniform(); here is also where `changeShader()` is called if different shaders are used for different objects.
  </details>
  
- 
  - <details><summary> Camera </summary>
  
    -  controls the scene's camera, contains the scene's MVP.
  </details>
- 
  
  - <details><summary> MaterialInfo (struct) </summary>
  
    - material info container
  </details>
  
- 
  - <details><summary> LightInfo (struct) </summary>
  
    - light info container
  </details>
 
+ - <details><summary> SceneObject </summary>
+ 
+   - contains object specific model matrix and material info.
+ </details>
  
 ---
 ## Controls
@@ -184,15 +195,47 @@ Controls are ignored if the mouse courser is hovering over a GUI panel.
 ---
 ## GUI
   
+Panels:
+ - `Camera data` - Displays the camera's Model-View-Projection matrices and debug info (which includes the View's inverse).
+ - `Object Material Info` - Displays all objects and their material info.
+ - `Light info` - Displays all lights and their info.
+ - `Debug info` - Displays window/viewport/mouse related data.
+ 
+All panels can be collapsed by clicking the arrow in the top left of the panel. They can be moved around as needed by grapping them by the top bar. They can also be resized as needed (by grapping and dragging their bottom right or left corner).
 
+The camera matrices can be reset individually or all together via their respective buttons in the `Camera data` panel.
+ 
+Each object's material can be edited in their individual sections of the `Object Material Info` panel.
+ 
+Each light can be manipulated in their individual sections of the `Light Info` panel.
+ 
+All values displayed can be manipulated by click 'n' dragging them or double / single clicking them and typing in a value. Edited values directly affects the scene/object.
+ 
 <details>
 <summary>Pictures</summary>
 
 <img src="" alt="Camera data" width="" height="">
 
-<img src="" alt="Object hierarchy" width="" height="">
+<img src="" alt="Object Material Info" width="" height="">
+ 
+<img src="" alt="Light Info" width="" height="">
 
-<img src="" alt="UI Debug Info" width="" height="">
+<img src="" alt="Debug Info" width="" height="">
 </details>
-  
+ 
+ 
+---
+## The scene
+
+
+<details>
+<summary>Pictures</summary>
+
+<img src="" alt="" width="" height="">
+
+<img src="" alt="" width="" height="">
+
+<img src="" alt="" width="" height="">
+</details>
+
   
