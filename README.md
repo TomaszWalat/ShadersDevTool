@@ -2,7 +2,11 @@
 <short description>
 
  **Functionality**
- <bullet points>
+- manipulate Model View Projection (MVP) matricies;
+- control camera position and rotation with keyboard and mouse (arcball style);
+- manipulate each scene light individually;
+- manipulate each scene object individually;
+ 
   
 <details>
  <summary><b>Picture</b></summary>
@@ -15,9 +19,9 @@
 - OS - Windows 10 Home (v.21H1)
 - IDE - Microsoft Visual Studio Community 2019 (v.16.8.3)
 - ISO C++ 14 Standard
-- OpenGL 4.5 (w/ FreeGlut v.3.0, GLEW v.1.12.0, GLFW v.3.3.4, GLM v.0.9.9.8 - through VS NuGet Package Manager)
-- Dear ImGui v1.87
-- stb_image v2.23
+- OpenGL 4.6 (w/ Glad v.0.1.35 GLFW v.3.3.6, GLM v.0.9.8; GLFW built using CMake v.3.22.2)
+- Dear ImGui v.1.87 WIP
+- stb_image v.2.19
 </details>
   
 ---
@@ -33,8 +37,55 @@
 ---
 
 ## Set-up
+
+Things you'll need: 
+ - "ShadersDevTool.exe" file
+ - "media" folder
+ - "shader" folder
+ - "imgui.ini" file (techincially not needed, however, it stores the position of UI elementes)
+
+(Everything listed is included in the release .zip)
+ 
+The files / folders listed needed to be in the same directory - for full structure see architecture section below.
+ 
   
-  
+---
+## Architecture
+
+Executable version structure:
+- `ShadersDevTool.exe`
+- `imgui.ini`
+- shader (folder) 
+  - `blinnPhongShader.vert`
+  - `blinnPhongShader.frag`
+  - `blinnPhongShader_normalMap.vert`
+  - `blinnPhongShader_normalMap.frag`
+  - `skyboxShader.vert`
+  - `skyboxShader.frag`
+- media (folder)
+  - `bs_ears.obj`
+  - `pig_triangulated.obj`
+  - texture (folder)
+    - `cement.jpg`
+    - `fire.png`
+    - `star.png`
+    - brick (folder)
+      - `brick1.jpg`
+    - ogre (folder)
+      - `ogre_diffuse.png`
+      - `ogre_normalmap.png`
+    - ripple (folder)
+      - `NormalMap_invertedR.png`
+    - skybox (folder)
+      - `lake180_negx.jpg`
+      - `lake180_negy.jpg`
+      - `lake180_negz.jpg`
+      - `lake180_posx.jpg`
+      - `lake180_posy.jpg`
+      - `lake180_posz.jpg`
+    - wood (folder)
+      - `Albedo.jpg`
+ 
 ---
 ## Controls
 Controls are ignored if the mouse courser is hovering over a GUI panel.
@@ -64,6 +115,3 @@ Controls are ignored if the mouse courser is hovering over a GUI panel.
 </details>
   
   
-  
----
-## Architecture
