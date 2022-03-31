@@ -1,11 +1,12 @@
 # GLSL Shader Dev Tool
-<short description>
+An OpenGL 4.6 program that presents my custom shader model.
 
  **Functionality**
-- manipulate Model View Projection (MVP) matricies;
-- control camera position and rotation with keyboard and mouse (arcball style);
-- manipulate each scene light individually;
-- manipulate each scene object individually;
+- manipulate Model View Projection (MVP) matricies
+- control camera position and rotation with keyboard and mouse (arcball style)
+- manipulate each scene light individually
+- manipulate each scene object individually
+- dynamically change shaders (UI currently disabled )
  
 **GLSL features**
  - Blinn-Phong shading
@@ -21,7 +22,8 @@
   
 <details>
  <summary><b>Picture</b></summary>
-<img src="">
+
+<img src="https://user-images.githubusercontent.com/33025239/161029848-3b2a23a1-bd1e-4e20-aad2-3c93cf7e1d08.png" alt="sceneWithUI" width="" height="">
 </details>
 
 <details>
@@ -59,7 +61,7 @@ Things you'll need:
  
 The files / folders listed needed to be in the same directory - for full structure see architecture section below.
  
-Note: Unfortunatlly I believe there is a slight memory leak, which (according to analysis tools) seems to be coming from 3rd party files - this will be fixed in the future.
+Note: Unfortunatlly I believe there is a memory leak, which (according to analysis tools) seems to be coming from 3rd party files - this will be fixed in the future.
   
 ---
 ## Architecture
@@ -122,7 +124,7 @@ Note: Unfortunatlly I believe there is a slight memory leak, which (according to
     </details> <!-- end texture folder -->
   </details> <!-- end media folder -->
  
- ### Internal program structure:
+### Internal program structure:
  - <details><summary> main.cpp </summary> 
  
    - `main()` - Program entry point. Creates instance of SceneRunner and Scene, passes scene into scenerunner via `run()`.
@@ -178,6 +180,22 @@ Note: Unfortunatlly I believe there is a slight memory leak, which (according to
    - contains object specific model matrix and material info.
  </details>
  
+
+### Shaders
+There are currently three shaders that come with the project:
+ - Blinn-Phong shader (w/ light attenuation and skybox reflection)
+ - Blinn-Phong with normal mapping shader (w/ attenuation and skybox reflection)
+ - Skybox shader - for rendering the scene skybox
+ 
+Shaders are listed in the `shaders` vector, compiled, linked and placed into the `progs` map - currently the setup does not support geometry shaders, but it will in future vversions (it's an easy tweak).
+ 
+Light type is deduced in the shader as follows:
+ - if light's `position.w` == 0, then it's a directional light (and calculations for attenuation and cone intensity are nulled)
+ - if light's `position.w` == 1 AND `direction` == (0, 0, 0), then light is a point light (cone intensity is nulled, but attenuation is used)
+ - if light's `position.w` == 1 AND `direction` != (0, 0, 0), then light is a spotlight (cone intensity and attenuation are used)
+ 
+Currently, for directional lighting, its direction is worked out from its `position.xyz` and not from its `direction` value - this might change in the future, but for now it's this way for the sake of the other light types.
+
 ---
 ## Controls
 Controls are ignored if the mouse courser is hovering over a GUI panel.
@@ -205,7 +223,7 @@ All panels can be collapsed by clicking the arrow in the top left of the panel. 
 
 The camera matrices can be reset individually or all together via their respective buttons in the `Camera data` panel.
  
-Each object's material can be edited in their individual sections of the `Object Material Info` panel.
+Each object's material can be edited in their individual sections of the `Object Material Info` panel. The `Alpha discard` slider affects only the `teapot` as it's the only object with an alpha texture.
  
 Each light can be manipulated in their individual sections of the `Light Info` panel.
  
@@ -214,28 +232,35 @@ All values displayed can be manipulated by click 'n' dragging them or double / s
 <details>
 <summary>Pictures</summary>
 
-<img src="" alt="Camera data" width="" height="">
-
-<img src="" alt="Object Material Info" width="" height="">
+<img src="https://user-images.githubusercontent.com/33025239/161029911-28c2ccfe-3290-40bf-bfa1-ae0793f97797.png" alt="Object Material Info" width="" height="">
  
-<img src="" alt="Light Info" width="" height="">
+<img src="https://user-images.githubusercontent.com/33025239/161029899-53d7b20f-915e-447c-81ae-ed0d000908a9.png" alt="Light Info" width="" height="">
 
-<img src="" alt="Debug Info" width="" height="">
+<img src="https://user-images.githubusercontent.com/33025239/161029882-4829a69c-3682-43dc-a5f4-058d8cb18ff1.png" alt="Camera data" width="" height="">
 </details>
- 
+
  
 ---
 ## The scene
 
-
+In the scene there are 11 objects:
+ - the skybox (with mountain lake texture)
+ - a plane (with cement texture, called floor)
+ - a cube (with brick texture, called box)
+ - a pig (on top of the box, called piggy)
+ - a cube (with normal map, called matalCube)
+ - a torus (with wood texture)
+ - an ogre head (with texture and normal map)
+ - a teapot (with not texture)
+ - a point light
+ - and three spot lights
+ 
 <details>
 <summary>Pictures</summary>
 
-<img src="" alt="" width="" height="">
+<img src="https://user-images.githubusercontent.com/33025239/161029866-6c4fa3b4-3133-47c4-abba-a02dc1383f76.png" alt="sceneNoUI" width="" height="">
 
-<img src="" alt="" width="" height="">
-
-<img src="" alt="" width="" height="">
 </details>
 
+The camera's "transform" (like in Unity) is technically split into two: the model (world) matrix which is what is moved to offset the scene's world space (giving the illusion the camera is moving); and the view matrix, which is set back from the origin in the -Z direction (into the screen) and rotated around its axes to give the illusion of the camera rotating around what's infront of it in an arcball fashion.
   
