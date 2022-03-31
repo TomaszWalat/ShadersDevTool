@@ -23,7 +23,7 @@ class SceneBasic_Uniform : public Scene
 private:
     //GLuint currentProg = 0;
     std::string currentProg;
-    GLSLProgram prog;
+    //GLSLProgram prog;
     std::map<std::string, std::unique_ptr<GLSLProgram>> progs;
 
 	std::vector<LightInfo> lights;

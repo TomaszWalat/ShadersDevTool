@@ -63,6 +63,8 @@ std::vector<std::vector<std::string>> shaders  {
 
 };
 
+
+
 SceneBasic_Uniform::SceneBasic_Uniform() : skybox(100.0f),
 										   floor(20.0f, 20.0f, 100, 100),
 										   metalCube(2),
@@ -73,6 +75,7 @@ SceneBasic_Uniform::SceneBasic_Uniform() : skybox(100.0f),
 	piggy = ObjMesh::load("media/pig_triangulated.obj", true);
 	ogre = ObjMesh::load("media/bs_ears.obj", false, true);
 }
+
 
 void SceneBasic_Uniform::initScene()
 {
@@ -305,6 +308,7 @@ void SceneBasic_Uniform::changeShader(std::string shaderName)
 		iterator->second->use();
 	}
 }
+
 
 void SceneBasic_Uniform::setMatrices()
 {
@@ -652,5 +656,5 @@ void SceneBasic_Uniform::resize(int w, int h)
 
     glViewport(0,0,w,h);
 
-	projection = glm::perspective(glm::radians(70.0f), (float)w/h, 0.3f, 100.0f);
+	//projection = glm::perspective(glm::radians(70.0f), (float)w/h, 0.3f, 100.0f);
 }

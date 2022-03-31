@@ -71,10 +71,12 @@ vec3 computeLighting(in int lightNo, in vec3 tColour, in vec3 n)
     // --- Spotlight calculation --- //
     float intensity = 1.0f;
     
-    vec3 lDirection =  (ModelViewMatrix * vec4(lights[lightNo].direction, 0.0)).xyz; // Light direction in world space
+    vec3 l = lights[lightNo].direction * lights[lightNo].position.w; // direction / point light filter
 
-    if((lights[lightNo].direction * lights[lightNo].position.w) != vec3(0.0)) // If direction not set, light is a point light
+    if(l != vec3(0.0)) // if light direcction or position.w == 0, light is not a spotlight
     {
+        vec3 lDirection = (ModelViewMatrix * vec4(lights[lightNo].direction, 0.0)).xyz; // Light direction in world space
+
         float theta = dot(s, lDirection); // angle between light ray (from light to fragment)
         float angle = acos(theta); // real angle
 
@@ -119,7 +121,7 @@ void main() {
 
     // Get texture pixel
     vec4 albedoTexColour = texture(AlbedoTex, TexCoord);
-    vec4 detailTexColour = texture(DetailTex, TexCoord); // Not proper detail, just secondary albedo
+//    vec4 detailTexColour = texture(DetailTex, TexCoord); // Not proper detail, just secondary albedo
     vec4 alphaMap = texture(AlphaTex, TexCoord);
     
     // Discard fragment based on alpah map
@@ -134,8 +136,8 @@ void main() {
 //        n = -Normal;
 //    }
 
-    // Mix albedo and detail textures
-    vec3 albedoDetail = normalize(mix(albedoTexColour.rgb, detailTexColour.rgb, detailTexColour.a));
+//    // Mix albedo and detail textures
+//    vec3 albedoDetail = normalize(mix(albedoTexColour.rgb, detailTexColour.rgb, detailTexColour.a));
 
     // Mix texture with base model colour (set colour alpha to 0 to discard it)
     vec3 texColour = mix(albedoTexColour.rgb, material.colour.rgb,material.colour.a);

@@ -123,12 +123,12 @@ void main() {
 
     // Get texture pixel
     vec4 albedoTexColour = texture(AlbedoTex, TexCoord);
-    vec4 detailTexColour = texture(DetailTex, TexCoord); // Not proper detail, just secondary albedo
+//    vec4 detailTexColour = texture(DetailTex, TexCoord); // Not proper detail, just secondary albedo
     vec4 alphaMap = texture(AlphaTex, TexCoord);
     vec3 normMap = texture(NormalMap, TexCoord).xyz;
     
-    // Mix albedo and detail textures
-    vec3 albedoDetail = normalize(mix(albedoTexColour.rgb, detailTexColour.rgb, detailTexColour.a));
+//    // Mix albedo and detail textures
+//    vec3 albedoDetail = normalize(mix(albedoTexColour.rgb, detailTexColour.rgb, detailTexColour.a));
 
     // Mix texture with base model colour (set colour alpha to 0 to discard it)
     vec3 texColour = normalize(mix(albedoTexColour.rgb, material.colour.rgb, material.colour.a));

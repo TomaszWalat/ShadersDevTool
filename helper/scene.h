@@ -13,7 +13,7 @@
 class Scene
 {
 protected:
-	glm::mat4 model, view, projection;
+	// glm::mat4 model, view, projection;
     
 
 public:
