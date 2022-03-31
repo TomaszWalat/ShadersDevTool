@@ -43,7 +43,7 @@ An OpenGL 4.6 program that presents my custom shader model.
 <details>
  <summary>Show</summary>
  
-[![Project developer walkthrough]()]()
+[![Project developer walkthrough](https://youtu.be/GJkhnt9OuY0)](https://youtu.be/GJkhnt9OuY0)
 
 </details>
 
