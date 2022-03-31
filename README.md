@@ -2,11 +2,11 @@
 An OpenGL 4.6 program that presents my custom shader model.
 
  **Functionality**
-- manipulate Model View Projection (MVP) matricies
+- manipulate Model View Projection (MVP) matrices
 - control camera position and rotation with keyboard and mouse (arcball style)
 - manipulate each scene light individually
 - manipulate each scene object individually
-- dynamically change shaders (UI currently disabled )
+- dynamically change shaders (UI currently disabled)
  
 **GLSL features**
  - Blinn-Phong shading
@@ -55,13 +55,13 @@ Things you'll need:
  - "ShadersDevTool.exe" file
  - "media" folder
  - "shader" folder
- - "imgui.ini" file (techincially not needed, however, it stores the position of UI elementes)
+ - "imgui.ini" file (technically not needed, however, it stores the position of UI elements)
 
 (Everything listed is included in the release .zip)
  
 The files / folders listed needed to be in the same directory - for full structure see architecture section below.
  
-Note: Unfortunatlly I believe there is a memory leak, which (according to analysis tools) seems to be coming from 3rd party files - this will be fixed in the future.
+Note: Unfortunately I believe there is a memory leak, which (according to analysis tools) seems to be coming from 3rd party files - this will be fixed in the future.
   
 ---
 ## Architecture
@@ -146,8 +146,8 @@ Note: Unfortunatlly I believe there is a memory leak, which (according to analys
  
  - <details><summary> SceneBasic_Uniform (extends Scene)</summary>
  
-   - Textures (struct) - loads  and holds all textures required for the scene.
-   - shaders (vector) - lists shader files to compile and link togather.
+   - Textures (struct) - loads and holds all textures required for the scene.
+   - shaders (vector) - lists shader files to compile and link together.
    - `SceneBasic_Uniform()` - initialises objects in scene (skybox, floor, metalCube, box, torus, teapot, piggy, ogre).
    - `initScene()` - initialises camera (cam), calls `compile()`, maps textures to objects, positions objects in scene, sets objects' material info, populates lights vector (initialises 4 lights).
    - `compile()` - compiles and links shaders as specified in shaders vector (as GLSLProgram objects), and places them into progs map.
@@ -187,7 +187,7 @@ There are currently three shaders that come with the project:
  - Blinn-Phong with normal mapping shader (w/ attenuation and skybox reflection)
  - Skybox shader - for rendering the scene skybox
  
-Shaders are listed in the `shaders` vector, compiled, linked and placed into the `progs` map - currently the setup does not support geometry shaders, but it will in future vversions (it's an easy tweak).
+Shaders are listed in the `shaders` vector, compiled, linked and placed into the `progs` map - currently the setup does not support geometry shaders, but it will in future versions (it's an easy tweak).
  
 Light type is deduced in the shader as follows:
  - if light's `position.w` == 0, then it's a directional light (and calculations for attenuation and cone intensity are nulled)
@@ -219,7 +219,7 @@ Panels:
  - `Light info` - Displays all lights and their info.
  - `Debug info` - Displays window/viewport/mouse related data.
  
-All panels can be collapsed by clicking the arrow in the top left of the panel. They can be moved around as needed by grapping them by the top bar. They can also be resized as needed (by grapping and dragging their bottom right or left corner).
+All panels can be collapsed by clicking the arrow in the top left of the panel. They can be moved around as needed by grabbing them by the top bar. They can also be resized as needed (by grabbing and dragging their bottom right or left corner).
 
 The camera matrices can be reset individually or all together via their respective buttons in the `Camera data` panel.
  
@@ -227,7 +227,7 @@ Each object's material can be edited in their individual sections of the `Object
  
 Each light can be manipulated in their individual sections of the `Light Info` panel.
  
-All values displayed can be manipulated by click 'n' dragging them or double / single clicking them and typing in a value. Edited values directly affects the scene/object.
+All values displayed can be manipulated by click 'n' dragging them or double / single clicking them and typing in a value. Edited values directly affect the scene/object.
  
 <details>
 <summary>Pictures</summary>
@@ -262,5 +262,5 @@ In the scene there are 11 objects:
 
 </details>
 
-The camera's "transform" (like in Unity) is technically split into two: the model (world) matrix which is what is moved to offset the scene's world space (giving the illusion the camera is moving); and the view matrix, which is set back from the origin in the -Z direction (into the screen) and rotated around its axes to give the illusion of the camera rotating around what's infront of it in an arcball fashion.
+The camera's "transform" (like in Unity) is technically split into two: the model (world) matrix which is what is moved to offset the scene's world space (giving the illusion the camera is moving); and the view matrix, which is set back from the origin in the -Z direction (into the screen) and rotated around its axes to give the illusion of the camera rotating around what's in front of it in an arcball fashion.
   
