@@ -12,9 +12,6 @@ struct LightInfo
 	glm::vec3 direction = glm::vec3(0.0f, -1.0f, 0.0f);		
 
 	glm::vec3 colour = glm::vec3(1.0f); // colour of light
-	GLfloat ambient = 0.1f;					 // ambient light intensity factor 
-	GLfloat diffuse = 0.75f;				 // diffuse light intensity factor
-	GLfloat specular = 1.0f;				 // specular light intensity factor
 
 
 	// light intensity drop off (attenuation) properties (point and spot light only)

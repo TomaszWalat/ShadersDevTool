@@ -7,11 +7,10 @@ struct MaterialInfo
 {
 	glm::vec4 colour = glm::vec4(0.0f); // object base colour, set alpha to 0 to discard
 
-	GLfloat ambient = 0.1f;		 // ambient light reflectivity factor
-	GLfloat diffuse = 1.0f;		 // diffuse light reflectivity factor
-	GLfloat specular = 1.0f;	 // specular light reflectivity factor
-	GLfloat shininess = 64.0f;	 // specular highlight reflectivity factor
-	GLfloat reflectivity = 0.0f; // ignore - unused for now, meant for skybox reflectivity
+	GLfloat roughness = 0.1f;		 // ambient light reflectivity factor
+	GLfloat metallic = 0.0f;		 // diffuse light reflectivity factor
+
+	//glm::vec3 F0 = glm::vec3();
 
 	GLuint albedoTex;			// base texture (colour info)
 	GLuint detailTex;			// for up close detail texture - currently unused

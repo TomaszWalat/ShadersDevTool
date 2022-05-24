@@ -49,17 +49,22 @@ std::vector<std::vector<std::string>> shaders  {
 	//	"shader/blinnPhongFlatShader.vert",
 	//	"shader/blinnPhongFlatShader.frag"},
 
-	{"Blinn-Phong Shader",
-		"shader/blinnPhongShader.vert",
-		"shader/blinnPhongShader.frag"},
+	//{"Blinn-Phong Shader",
+	//	"shader/blinnPhongShader.vert",
+	//	"shader/blinnPhongShader.frag"},
+
+
+	//{"Blinn-Phong Normal Map Shader",
+	//	"shader/blinnPhongShader_normalMap.vert",
+	//	"shader/blinnPhongShader_normalMap.frag"},
+
+	{"PBR Shader",
+		"shader/pbrShader.vert",
+		"shader/pbrShader.frag"},
 
 	{"Skybox Shader",
 		"shader/skyboxShader.vert",
 		"shader/skyboxShader.frag"},
-
-	{"Blinn-Phong Normal Map Shader",
-		"shader/blinnPhongShader_normalMap.vert",
-		"shader/blinnPhongShader_normalMap.frag"},
 
 };
 
@@ -175,60 +180,38 @@ void SceneBasic_Uniform::initScene()
 
 	// Setting object material properties
 	{
-		floor.material.ambient = 0.1f;
-		floor.material.diffuse = 0.75f;
-		floor.material.specular = 1.0f;
-		floor.material.shininess = 64.0f;
-		floor.material.reflectivity = 0.5f;
+		floor.material.roughness = 1.0f;
+		floor.material.metallic = 0.01f;
 		
-		box.material.ambient = 0.1f;
-		box.material.diffuse = 0.75f;
-		box.material.specular = 1.0f;
-		box.material.shininess = 64.0f;
-		box.material.reflectivity = 0.5f;
+		box.material.roughness = 1.0f;
+		box.material.metallic = 0.01f;
 		
-		piggy->material.ambient = 0.2f;
-		piggy->material.diffuse = 0.8f;
-		piggy->material.specular = 0.1f;
-		piggy->material.shininess = 30.0f;
-		piggy->material.reflectivity = 0.5f;
+		piggy->material.roughness = 0.01f;
+		piggy->material.metallic = 0.01f;
 		piggy->material.colour = vec4(0.95f, 1.0f, 0.5f, 1.0f);
 		
-		metalCube.material.ambient = 0.2f;
-		metalCube.material.diffuse = 0.5f;
-		metalCube.material.specular = 1.0f;
-		metalCube.material.shininess = 5.0f;
-		metalCube.material.reflectivity = 0.5f;
+		metalCube.material.roughness = 0.01f;
+		metalCube.material.metallic = 1.0f;
 		metalCube.material.colour = vec4(1.0f);
 
-		torus.material.ambient = 0.1f;
-		torus.material.diffuse = 0.75f;
-		torus.material.specular = 1.0f;
-		torus.material.shininess = 64.0f;
-		torus.material.reflectivity = 0.5f;
+		torus.material.roughness = 0.5f;
+		torus.material.metallic = 0.01f;
 		
-		ogre->material.ambient = 0.1f;
-		ogre->material.diffuse = 0.75f;
-		ogre->material.specular = 1.0f;
-		ogre->material.shininess = 64.0f;
-		ogre->material.reflectivity = 0.5f;
+		ogre->material.roughness = 0.1f;
+		ogre->material.metallic = 0.01f;
 
-		teapot.material.ambient = 0.1f;
-		teapot.material.diffuse = 0.7f;
-		teapot.material.specular = 1.0f;
-		teapot.material.shininess = 10.0f;
-		teapot.material.reflectivity = 0.5f;
+		teapot.material.roughness = 1.0f;
+		teapot.material.metallic = 1.0f;
 		teapot.material.colour = vec4(1.0f);
 	}
 
 	// Setting up lights
 	{
 		LightInfo L1 = { // Directional - Sun
-			vec4(8.0f, 5.0f, 5.0f, 1.0f),
+			vec4(8.0f, 5.0f, 5.0f, 0.0f),
 			vec3(0.0f, 0.0f, 0.0f),
 			vec3(1.0f),
-			0.1f, 0.75f, 1.0f,
-			1.0f, 0.022f,0.0019f,
+			1.0f, 0.022f, 0.0019f,
 			30.0f, 45.0f
 		};
 		lights.push_back(L1); 
@@ -237,8 +220,7 @@ void SceneBasic_Uniform::initScene()
 			vec4(-5.0f, 5.0f, 0.0f, 1.0f),
 			vec3(0.0f, -1.0f, 0.0f),
 			vec3(1.0f, 0.0f, 0.0f), // Red
-			0.1f, 0.75f, 1.0f,
-			1.0f, 0.022f,0.0019f,
+			1.0f, 0.022f, 0.0019f,
 			30.0f, 45.0f
 		};
 		lights.push_back(L2); 
@@ -247,9 +229,8 @@ void SceneBasic_Uniform::initScene()
 			vec4(0.0f, 8.0f, -4.5f, 1.0f),
 			vec3(0.0f, -1.0f, 0.0f),
 			vec3(1.0f),
-			0.1f, 0.75f, 1.0f,
-			1.0f, 0.022f,0.0019f,
-			36.0f, 37.0f
+			1.0f, 0.022f, 0.0019f,
+			30.0f, 45.0f
 		};
 		lights.push_back(L3);
 
@@ -257,9 +238,8 @@ void SceneBasic_Uniform::initScene()
 			vec4(-6.0f, 6.0f, -6.0f, 1.0f),
 			vec3(0.0f, -1.0f, 0.0f),
 			vec3(0.0f, 0.0f, 1.0f), // Blue
-			0.1f, 0.75f, 1.0f,
 			1.0f, 0.022f, 0.0019f,
-			30.0f, 40.0f
+			30.0f, 45.0f
 		};
 		lights.push_back(L4);
 
@@ -340,11 +320,8 @@ void SceneBasic_Uniform::setMeshUniforms(TriangleMesh* mesh)
 
 	// Set object material properties
 	progs.at(currentProg)->setUniform("material.colour", mesh->material.colour);
-	progs.at(currentProg)->setUniform("material.ambient", mesh->material.ambient);
-	progs.at(currentProg)->setUniform("material.diffuse", mesh->material.diffuse);
-	progs.at(currentProg)->setUniform("material.specular", mesh->material.specular);
-	progs.at(currentProg)->setUniform("material.shininess", mesh->material.shininess);
-	progs.at(currentProg)->setUniform("material.reflectivity", mesh->material.reflectivity);
+	progs.at(currentProg)->setUniform("material.roughness", mesh->material.roughness);
+	progs.at(currentProg)->setUniform("material.metallic", mesh->material.metallic);
 
 
 	// Swap out texture bindings
@@ -380,16 +357,7 @@ void SceneBasic_Uniform::setLights()
 
 		uName = "lights[" + id + "].colour";
 		progs.at(currentProg)->setUniform(uName.c_str(), lights.at(i).colour);
-
-		uName = "lights[" + id + "].ambient";
-		progs.at(currentProg)->setUniform(uName.c_str(), lights.at(i).ambient);
-
-		uName = "lights[" + id + "].diffuse";
-		progs.at(currentProg)->setUniform(uName.c_str(), lights.at(i).diffuse);
-
-		uName = "lights[" + id + "].specular";
-		progs.at(currentProg)->setUniform(uName.c_str(), lights.at(i).specular);
-
+		
 
 		uName = "lights[" + id + "].attenuationConstant";
 		progs.at(currentProg)->setUniform(uName.c_str(), lights.at(i).attenuationConstant);
@@ -433,11 +401,8 @@ void SceneBasic_Uniform::drawGUI()
 		if(ImGui::CollapsingHeader("Floor"))
 		{
 			
-			ImGui::SliderFloat("Ambient##floor", &floor.material.ambient, 0.0f, 1.0f);
-			ImGui::SliderFloat("Diffuse##floor", &floor.material.diffuse, 0.0f, 1.0f);
-			ImGui::SliderFloat("Specular##floor", &floor.material.specular, 0.0f, 1.0f);
-			ImGui::SliderFloat("Shininess##floor", &floor.material.shininess, 0.0f, 256.0f);
-			ImGui::SliderFloat("Reflectivity##floor", &floor.material.reflectivity, 0.0f, 1.0f);
+			ImGui::SliderFloat("Roughness##floor", &floor.material.roughness, 0.01f, 1.0f);
+			ImGui::SliderFloat("Metallic##floor", &floor.material.metallic, 0.01f, 1.0f);
 			ImGui::ColorEdit4("Colour##floor", glm::value_ptr(floor.material.colour));
 		}
 		ImGui::PopID(); // Closes instance ID area
@@ -447,11 +412,8 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::PushID(12); // Prevents UI element instance issues
 		if(ImGui::CollapsingHeader("Box"))
 		{
-			ImGui::SliderFloat("Ambient##box", &box.material.ambient, 0.0f, 1.0f);
-			ImGui::SliderFloat("Diffuse##box", &box.material.diffuse, 0.0f, 1.0f);
-			ImGui::SliderFloat("Specular##box", &box.material.specular, 0.0f, 1.0f);
-			ImGui::SliderFloat("Shininess##box", &box.material.shininess, 0.0f, 256.0f);
-			ImGui::SliderFloat("Reflectivity##box", &box.material.reflectivity, 0.0f, 1.0f);
+			ImGui::SliderFloat("Roughness##box", &box.material.roughness, 0.01f, 1.0f);
+			ImGui::SliderFloat("Metallic##box", &box.material.metallic, 0.01f, 1.0f);
 			ImGui::ColorEdit4("Colour##box", glm::value_ptr(box.material.colour));
 		}
 		ImGui::PopID(); // Closes instance ID area
@@ -461,11 +423,8 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::PushID(13); // Prevents UI element instance issues
 		if(ImGui::CollapsingHeader("Piggy"))
 		{
-			ImGui::SliderFloat("Ambient##piggy", &piggy->material.ambient, 0.0f, 1.0f);
-			ImGui::SliderFloat("Diffuse##piggy", &piggy->material.diffuse, 0.0f, 1.0f);
-			ImGui::SliderFloat("Specular##piggy", &piggy->material.specular, 0.0f, 1.0f);
-			ImGui::SliderFloat("Shininess##piggy", &piggy->material.shininess, 0.0f, 256.0f);
-			ImGui::SliderFloat("Reflectivity##piggy", &piggy->material.reflectivity, 0.0f, 1.0f);
+			ImGui::SliderFloat("Roughness##piggy", &piggy->material.roughness, 0.01f, 1.0f);
+			ImGui::SliderFloat("Metallic##piggy", &piggy->material.metallic, 0.01f, 1.0f);
 			ImGui::ColorEdit4("Colour##piggy", glm::value_ptr(piggy->material.colour));
 		}
 		ImGui::PopID(); // Closes instance ID area
@@ -475,11 +434,8 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::PushID(14); // Prevents UI element instance issues
 		if(ImGui::CollapsingHeader("Metal Cube"))
 		{
-			ImGui::SliderFloat("Ambient##metalCube", &metalCube.material.ambient, 0.0f, 1.0f);
-			ImGui::SliderFloat("Diffuse##metalCube", &metalCube.material.diffuse, 0.0f, 1.0f);
-			ImGui::SliderFloat("Specular##metalCube", &metalCube.material.specular, 0.0f, 1.0f);
-			ImGui::SliderFloat("Shininess##metalCube", &metalCube.material.shininess, 0.0f, 256.0f);
-			ImGui::SliderFloat("Reflectivity##metalCube", &metalCube.material.reflectivity, 0.0f, 1.0f);
+			ImGui::SliderFloat("Roughness##metalCube", &metalCube.material.roughness, 0.01f, 1.0f);
+			ImGui::SliderFloat("Metallic##metalCube", &metalCube.material.metallic, 0.01f, 1.0f);
 			ImGui::ColorEdit4("Colour##metalCube", glm::value_ptr(metalCube.material.colour));
 		}
 		ImGui::PopID(); // Closes instance ID area
@@ -489,11 +445,8 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::PushID(15); // Prevents UI element instance issues
 		if(ImGui::CollapsingHeader("Torus"))
 		{
-			ImGui::SliderFloat("Ambient##torus", &torus.material.ambient, 0.0f, 1.0f);
-			ImGui::SliderFloat("Diffuse##torus", &torus.material.diffuse, 0.0f, 1.0f);
-			ImGui::SliderFloat("Specular##torus", &torus.material.specular, 0.0f, 1.0f);
-			ImGui::SliderFloat("Shininess##torus", &torus.material.shininess, 0.0f, 256.0f);
-			ImGui::SliderFloat("Reflectivity##torus", &torus.material.reflectivity, 0.0f, 1.0f);
+			ImGui::SliderFloat("Roughness##torus", &torus.material.roughness, 0.01f, 1.0f);
+			ImGui::SliderFloat("Metallic##torus", &torus.material.metallic, 0.01f, 1.0f);
 			ImGui::ColorEdit4("Colour##torus", glm::value_ptr(torus.material.colour));
 		}
 		ImGui::PopID(); // Closes instance ID area
@@ -503,11 +456,8 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::PushID(16); // Prevents UI element instance issues
 		if(ImGui::CollapsingHeader("Ogre"))
 		{
-			ImGui::SliderFloat("Ambient##ogre", &ogre->material.ambient, 0.0f, 1.0f);
-			ImGui::SliderFloat("Diffuse##ogre", &ogre->material.diffuse, 0.0f, 1.0f);
-			ImGui::SliderFloat("Specular##ogre", &ogre->material.specular, 0.0f, 1.0f);
-			ImGui::SliderFloat("Shininess##ogre", &ogre->material.shininess, 0.0f, 256.0f);
-			ImGui::SliderFloat("Reflectivity##ogre", &ogre->material.reflectivity, 0.0f, 1.0f);
+			ImGui::SliderFloat("Roughness##ogre", &ogre->material.roughness, 0.01f, 1.0f);
+			ImGui::SliderFloat("Metallic##ogre", &ogre->material.metallic, 0.01f, 1.0f);
 			ImGui::ColorEdit4("Colour##ogre", glm::value_ptr(ogre->material.colour));
 		}
 		ImGui::PopID(); // Closes instance ID area
@@ -517,11 +467,8 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::PushID(17); // Prevents UI element instance issues
 		if(ImGui::CollapsingHeader("Teapot"))
 		{
-			ImGui::SliderFloat("Ambient##teapot", &teapot.material.ambient, 0.0f, 1.0f);
-			ImGui::SliderFloat("Diffuse##teapot", &teapot.material.diffuse, 0.0f, 1.0f);
-			ImGui::SliderFloat("Specular##teapot", &teapot.material.specular, 0.0f, 1.0f);
-			ImGui::SliderFloat("Shininess##teapot", &teapot.material.shininess, 0.0f, 256.0f);
-			ImGui::SliderFloat("Reflectivity##teapot", &teapot.material.reflectivity, 0.0f, 1.0f);
+			ImGui::SliderFloat("Roughness##teapot", &teapot.material.roughness, 0.01f, 1.0f);
+			ImGui::SliderFloat("Metallic##teapot", &teapot.material.metallic, 0.01f, 1.0f);
 			ImGui::ColorEdit4("Colour##teapot", glm::value_ptr(teapot.material.colour));
 		}
 		ImGui::PopID(); // Closes instance ID area
@@ -547,10 +494,7 @@ void SceneBasic_Uniform::drawGUI()
 				ImGui::DragFloat3(("Direction##L"+ id).c_str(), value_ptr(lights.at(i).direction), 0.01f, -1.0f, 1.0f);
 				
 				ImGui::Spacing();
-
-				ImGui::SliderFloat(("Ambient##L"+ id).c_str(), &lights.at(i).ambient, 0.0f, 1.0f);
-				ImGui::SliderFloat(("Diffuse##L"+ id).c_str(), &lights.at(i).diffuse, 0.0f, 1.0f);
-				ImGui::SliderFloat(("Specular##L"+ id).c_str(), &lights.at(i).specular, 0.0f, 1.0f);
+				
 				ImGui::ColorEdit3(("Colour##L"+ id).c_str(), glm::value_ptr(lights.at(i).colour));
 
 				ImGui::Spacing();
@@ -625,9 +569,9 @@ void SceneBasic_Uniform::render()
 
 	
 	std::string currentShader = currentProg;
-	changeShader("Blinn-Phong Normal Map Shader");
-	setMatrices();
-	setLights();
+	//changeShader("Blinn-Phong Normal Map Shader");
+	//setMatrices();
+	//setLights();
 	
 	setMeshUniforms(&metalCube);
 	metalCube.render();
@@ -635,7 +579,7 @@ void SceneBasic_Uniform::render()
 	setMeshUniforms(ogre.get());
 	ogre->render();
 	
-	changeShader(currentShader);
+	//changeShader(currentShader);
 
 
 

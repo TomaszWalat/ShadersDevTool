@@ -217,5 +217,11 @@
     <None Include="shader\skyboxShader.frag">
       <Filter>shader</Filter>
     </None>
+    <None Include="shader\pbrShader.vert">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\pbrShader.frag">
+      <Filter>shader</Filter>
+    </None>
   </ItemGroup>
 </Project>
