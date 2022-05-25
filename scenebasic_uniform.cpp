@@ -107,9 +107,11 @@ void SceneBasic_Uniform::initScene()
 		//skybox.material.skyboxCubeMap = Texture::loadHdrCubeMap("../PrototypeShadersDevTool/media/texture/cube/pisa-hdr/pisa");
 		skybox.material.skyboxCubeMap = textures.skybox_MountainLake;
 		
-		floor.material.albedoTex = textures.cement;
+		floor.material.albedoTex = textures.grayGraniteFlecks_Albedo;
+		//floor.material.albedoTex = textures.cement;
 		//floor.material.detailTex = textures.cement;
 		
+		metalCube.material.albedoTex = textures.rustedIron_Albedo;
 		metalCube.material.normalMap = textures.ripple_NormalMap;
 		//metalCube.material.displacementMap = textures.ripple_DisplacementMap;
 		//metalCube.material.ambientOcclusionMap = textures.ripple_AmbientOcclusionMap;
@@ -124,14 +126,14 @@ void SceneBasic_Uniform::initScene()
 		//box.material.ambientOcclusionMap = textures.brick_AmbientOcclusionMap;
 		//box.material.specularMap = textures.brick_SpecularMap;
 
-		torus.material.albedoTex = textures.wood_Albedo;
+		torus.material.albedoTex = textures.bambooWood_Albedo;
 		//torus.material.detailTex = textures.wood_Albedo;
 
-		//teapot.material.albedoTex = textures.wood_Albedo;
+		teapot.material.albedoTex = textures.copperScuffed_Albedo;
 		//teapot.material.detailTex = textures.wood_Albedo;
 		teapot.material.alphaMap = textures.fire;
 
-		//piggy->material.albedoTex = textures.spotCow_Albedo;
+		piggy->material.albedoTex = textures.scuffedPlastic_Albedo;
 		//piggy->material.detailTex = textures.spotCow_Albedo;
 
 
@@ -181,13 +183,13 @@ void SceneBasic_Uniform::initScene()
 	// Setting object material properties
 	{
 		floor.material.roughness = 1.0f;
-		floor.material.metallic = 0.01f;
+		floor.material.metallic = 0.0f;
 		
 		box.material.roughness = 1.0f;
-		box.material.metallic = 0.01f;
+		box.material.metallic = 0.0f;
 		
 		piggy->material.roughness = 0.01f;
-		piggy->material.metallic = 0.01f;
+		piggy->material.metallic = 0.0f;
 		piggy->material.colour = vec4(0.95f, 1.0f, 0.5f, 1.0f);
 		
 		metalCube.material.roughness = 0.01f;
@@ -195,10 +197,10 @@ void SceneBasic_Uniform::initScene()
 		metalCube.material.colour = vec4(1.0f);
 
 		torus.material.roughness = 0.5f;
-		torus.material.metallic = 0.01f;
+		torus.material.metallic = 0.0f;
 		
 		ogre->material.roughness = 0.1f;
-		ogre->material.metallic = 0.01f;
+		ogre->material.metallic = 0.0f;
 
 		teapot.material.roughness = 1.0f;
 		teapot.material.metallic = 1.0f;
@@ -211,6 +213,7 @@ void SceneBasic_Uniform::initScene()
 			vec4(8.0f, 5.0f, 5.0f, 0.0f),
 			vec3(0.0f, 0.0f, 0.0f),
 			vec3(1.0f),
+			1.0f,
 			1.0f, 0.022f, 0.0019f,
 			30.0f, 45.0f
 		};
@@ -220,6 +223,7 @@ void SceneBasic_Uniform::initScene()
 			vec4(-5.0f, 5.0f, 0.0f, 1.0f),
 			vec3(0.0f, -1.0f, 0.0f),
 			vec3(1.0f, 0.0f, 0.0f), // Red
+			1.0f,
 			1.0f, 0.022f, 0.0019f,
 			30.0f, 45.0f
 		};
@@ -229,6 +233,7 @@ void SceneBasic_Uniform::initScene()
 			vec4(0.0f, 8.0f, -4.5f, 1.0f),
 			vec3(0.0f, -1.0f, 0.0f),
 			vec3(1.0f),
+			1.0f,
 			1.0f, 0.022f, 0.0019f,
 			30.0f, 45.0f
 		};
@@ -238,6 +243,7 @@ void SceneBasic_Uniform::initScene()
 			vec4(-6.0f, 6.0f, -6.0f, 1.0f),
 			vec3(0.0f, -1.0f, 0.0f),
 			vec3(0.0f, 0.0f, 1.0f), // Blue
+			1.0f,
 			1.0f, 0.022f, 0.0019f,
 			30.0f, 45.0f
 		};
@@ -357,7 +363,9 @@ void SceneBasic_Uniform::setLights()
 
 		uName = "lights[" + id + "].colour";
 		progs.at(currentProg)->setUniform(uName.c_str(), lights.at(i).colour);
-		
+
+		uName = "lights[" + id + "].brightness";
+		progs.at(currentProg)->setUniform(uName.c_str(), lights.at(i).brightness);
 
 		uName = "lights[" + id + "].attenuationConstant";
 		progs.at(currentProg)->setUniform(uName.c_str(), lights.at(i).attenuationConstant);
@@ -402,7 +410,7 @@ void SceneBasic_Uniform::drawGUI()
 		{
 			
 			ImGui::SliderFloat("Roughness##floor", &floor.material.roughness, 0.01f, 1.0f);
-			ImGui::SliderFloat("Metallic##floor", &floor.material.metallic, 0.01f, 1.0f);
+			ImGui::SliderFloat("Metallic##floor", &floor.material.metallic, 0.0f, 1.0f);
 			ImGui::ColorEdit4("Colour##floor", glm::value_ptr(floor.material.colour));
 		}
 		ImGui::PopID(); // Closes instance ID area
@@ -413,7 +421,7 @@ void SceneBasic_Uniform::drawGUI()
 		if(ImGui::CollapsingHeader("Box"))
 		{
 			ImGui::SliderFloat("Roughness##box", &box.material.roughness, 0.01f, 1.0f);
-			ImGui::SliderFloat("Metallic##box", &box.material.metallic, 0.01f, 1.0f);
+			ImGui::SliderFloat("Metallic##box", &box.material.metallic, 0.0f, 1.0f);
 			ImGui::ColorEdit4("Colour##box", glm::value_ptr(box.material.colour));
 		}
 		ImGui::PopID(); // Closes instance ID area
@@ -424,7 +432,7 @@ void SceneBasic_Uniform::drawGUI()
 		if(ImGui::CollapsingHeader("Piggy"))
 		{
 			ImGui::SliderFloat("Roughness##piggy", &piggy->material.roughness, 0.01f, 1.0f);
-			ImGui::SliderFloat("Metallic##piggy", &piggy->material.metallic, 0.01f, 1.0f);
+			ImGui::SliderFloat("Metallic##piggy", &piggy->material.metallic, 0.0f, 1.0f);
 			ImGui::ColorEdit4("Colour##piggy", glm::value_ptr(piggy->material.colour));
 		}
 		ImGui::PopID(); // Closes instance ID area
@@ -435,7 +443,7 @@ void SceneBasic_Uniform::drawGUI()
 		if(ImGui::CollapsingHeader("Metal Cube"))
 		{
 			ImGui::SliderFloat("Roughness##metalCube", &metalCube.material.roughness, 0.01f, 1.0f);
-			ImGui::SliderFloat("Metallic##metalCube", &metalCube.material.metallic, 0.01f, 1.0f);
+			ImGui::SliderFloat("Metallic##metalCube", &metalCube.material.metallic, 0.0f, 1.0f);
 			ImGui::ColorEdit4("Colour##metalCube", glm::value_ptr(metalCube.material.colour));
 		}
 		ImGui::PopID(); // Closes instance ID area
@@ -446,7 +454,7 @@ void SceneBasic_Uniform::drawGUI()
 		if(ImGui::CollapsingHeader("Torus"))
 		{
 			ImGui::SliderFloat("Roughness##torus", &torus.material.roughness, 0.01f, 1.0f);
-			ImGui::SliderFloat("Metallic##torus", &torus.material.metallic, 0.01f, 1.0f);
+			ImGui::SliderFloat("Metallic##torus", &torus.material.metallic, 0.0f, 1.0f);
 			ImGui::ColorEdit4("Colour##torus", glm::value_ptr(torus.material.colour));
 		}
 		ImGui::PopID(); // Closes instance ID area
@@ -457,7 +465,7 @@ void SceneBasic_Uniform::drawGUI()
 		if(ImGui::CollapsingHeader("Ogre"))
 		{
 			ImGui::SliderFloat("Roughness##ogre", &ogre->material.roughness, 0.01f, 1.0f);
-			ImGui::SliderFloat("Metallic##ogre", &ogre->material.metallic, 0.01f, 1.0f);
+			ImGui::SliderFloat("Metallic##ogre", &ogre->material.metallic, 0.0f, 1.0f);
 			ImGui::ColorEdit4("Colour##ogre", glm::value_ptr(ogre->material.colour));
 		}
 		ImGui::PopID(); // Closes instance ID area
@@ -468,7 +476,7 @@ void SceneBasic_Uniform::drawGUI()
 		if(ImGui::CollapsingHeader("Teapot"))
 		{
 			ImGui::SliderFloat("Roughness##teapot", &teapot.material.roughness, 0.01f, 1.0f);
-			ImGui::SliderFloat("Metallic##teapot", &teapot.material.metallic, 0.01f, 1.0f);
+			ImGui::SliderFloat("Metallic##teapot", &teapot.material.metallic, 0.0f, 1.0f);
 			ImGui::ColorEdit4("Colour##teapot", glm::value_ptr(teapot.material.colour));
 		}
 		ImGui::PopID(); // Closes instance ID area
@@ -496,6 +504,7 @@ void SceneBasic_Uniform::drawGUI()
 				ImGui::Spacing();
 				
 				ImGui::ColorEdit3(("Colour##L"+ id).c_str(), glm::value_ptr(lights.at(i).colour));
+				ImGui::SliderFloat(("Brightness##L"+ id).c_str(), &lights.at(i).brightness, 0.01f, 10.0f);
 
 				ImGui::Spacing();
 

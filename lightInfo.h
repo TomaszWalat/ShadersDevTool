@@ -13,6 +13,7 @@ struct LightInfo
 
 	glm::vec3 colour = glm::vec3(1.0f); // colour of light
 
+	GLfloat brightness = 1.0f;
 
 	// light intensity drop off (attenuation) properties (point and spot light only)
 	// https://wiki.ogre3d.org/tiki-index.php?page=-Point+Light+Attenuation

@@ -14,6 +14,8 @@ struct MaterialInfo
 
 	GLuint albedoTex;			// base texture (colour info)
 	GLuint detailTex;			// for up close detail texture - currently unused
+	GLuint roughnessTex;		// for dictating material roughness value
+	GLuint metallicTex;			// for dictating material metallic-ness value
 	GLuint emissiveTex;			// for light emission (glow) - currently unused
 	GLuint normalMap;			// for surface normals
 	GLuint displacementMap;		// for geometry (vertex position) augmentation - currently unused
