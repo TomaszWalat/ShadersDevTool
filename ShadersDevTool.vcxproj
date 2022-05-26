@@ -168,6 +168,7 @@
     <ClCompile Include="model\objmesh.cpp" />
     <ClCompile Include="model\plane.cpp" />
     <ClCompile Include="model\skybox.cpp" />
+    <ClCompile Include="model\sphere.cpp" />
     <ClCompile Include="model\teapot.cpp" />
     <ClCompile Include="model\torus.cpp" />
     <ClCompile Include="model\trianglemesh.cpp" />
@@ -201,6 +202,7 @@
     <ClInclude Include="model\objmesh.h" />
     <ClInclude Include="model\plane.h" />
     <ClInclude Include="model\skybox.h" />
+    <ClInclude Include="model\sphere.h" />
     <ClInclude Include="model\teapot.h" />
     <ClInclude Include="model\teapotdata.h" />
     <ClInclude Include="model\torus.h" />
@@ -213,8 +215,8 @@
     <None Include="shader\blinnPhongShader.vert" />
     <None Include="shader\blinnPhongShader_normalMap.frag" />
     <None Include="shader\blinnPhongShader_normalMap.vert" />
-    <None Include="shader\deferredShader.frag" />
-    <None Include="shader\deferredShader.vert" />
+    <None Include="shader\hdrShader.frag" />
+    <None Include="shader\hdrShader.vert" />
     <None Include="shader\pbrShader.frag" />
     <None Include="shader\pbrShader.vert" />
     <None Include="shader\pbrTextureShader.frag" />

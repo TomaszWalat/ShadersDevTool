@@ -99,6 +99,9 @@
     <ClCompile Include="model\trianglemesh.cpp">
       <Filter>model</Filter>
     </ClCompile>
+    <ClCompile Include="model\sphere.cpp">
+      <Filter>model</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h">
@@ -197,6 +200,9 @@
     <ClInclude Include="materialInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="model\sphere.h">
+      <Filter>model</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\skyboxShader.vert">
@@ -229,10 +235,10 @@
     <None Include="shader\pbrTextureShader.frag">
       <Filter>shader</Filter>
     </None>
-    <None Include="shader\deferredShader.vert">
+    <None Include="shader\hdrShader.vert">
       <Filter>shader</Filter>
     </None>
-    <None Include="shader\deferredShader.frag">
+    <None Include="shader\hdrShader.frag">
       <Filter>shader</Filter>
     </None>
   </ItemGroup>

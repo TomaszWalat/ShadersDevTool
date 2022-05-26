@@ -58,6 +58,11 @@ std::vector<std::vector<std::string>> shaders  {
 	//	"shader/blinnPhongShader_normalMap.vert",
 	//	"shader/blinnPhongShader_normalMap.frag"},
 
+
+	{"PBR + HDR Shader",
+		"shader/hdrShader.vert",
+		"shader/hdrShader.frag"},
+
 	{"PBR Texture Shader",
 		"shader/pbrTextureShader.vert",
 		"shader/pbrTextureShader.frag"},
@@ -110,10 +115,11 @@ void SceneBasic_Uniform::initScene()
 	{
 		////skybox.material.skyboxCubeMap = Texture::loadHdrCubeMap("../PrototypeShadersDevTool/media/texture/cube/pisa-hdr/pisa");
 		////skybox.material.skyboxCubeMap = textures.skybox_MountainLake;
-		////skybox.material.skyboxCubeMap = textures.skybox_ArchesE_PineTree;
-		skybox.material.skyboxCubeMap = textures.skybox_SummiPool;
+		//skybox.material.skyboxCubeMap = textures.skybox_ArchesE_PineTree;
+		//skybox.material.skyboxEnvCubeMap = textures.skybox_env_ArchesE_PineTree;
+		//skybox.material.skyboxCubeMap = textures.skybox_SummiPool;
 		skybox.material.skyboxEnvCubeMap = textures.skybox_env_SummiPool;
-		//skybox.material.skyboxCubeMap = textures.skybox_PisaHDR;
+		skybox.material.skyboxCubeMap = textures.skybox_PisaHDR;
 		//skybox.material.skyboxEnvCubeMap = textures.skybox_PisaHDR;
 		
 		floor.material.albedoTex = textures.grayGraniteFlecks_Albedo;
@@ -301,6 +307,9 @@ void SceneBasic_Uniform::initScene()
 		lights.push_back(L4);
 
 	}
+
+	setupFBO();
+	setupFrameQuad();
 }
 
 
@@ -330,6 +339,85 @@ void SceneBasic_Uniform::compile()
 	
 	currentProg = shaders[0][0];
 	progs.at(currentProg)->use();
+}
+
+void SceneBasic_Uniform::setupFBO()
+{
+	GLuint depthBuffer;
+
+	// Create and bind FBO
+	glGenFramebuffers(1, &bufferTextures.hdr_FBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, bufferTextures.hdr_FBO);
+
+	// Depth buffer
+	glGenRenderbuffers(1, &depthBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+
+	// HDR colour buffer
+	glActiveTexture(GL_TEXTURE8);
+	glGenTextures(1, &bufferTextures.hdr_Colour);
+	glBindTexture(GL_TEXTURE_2D, bufferTextures.hdr_Colour);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA16F, width, height);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	// Attach depth & hdr images to frame buffer
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bufferTextures.hdr_Colour, 0);
+
+	GLenum drawBuffers[] = { GL_NONE, GL_COLOR_ATTACHMENT0 };
+	glDrawBuffers(2, drawBuffers);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void SceneBasic_Uniform::setupFrameQuad()
+{
+	// Vertex and TexCoord arrays for full-screen quad
+	GLfloat vert[] = {
+		-1.0f, -1.0f, 0.0f,		// bottom-left
+		1.0f, -1.0f, 0.0f,		// bottom-right
+		1.0f, 1.0f, 0.0f,		// top-right
+
+		-1.0f, -1.0f, 0.0f,		// bottom-left
+		1.0f, 1.0f, 0.0f,		// top-right
+		-1.0f, 1.0f, 0.0f		// top-left
+	};
+	GLfloat tc[] = {
+		0.0f, 0.0f,		// bottom-left
+		1.0f, 0.0f,		// bottom-right
+		1.0f, 1.0f,		// top-right
+
+		0.0f, 0.0f,		// bottom-left
+		1.0f, 1.0f,		// top-right
+		0.0f, 1.0f		// top-left
+	};
+
+	// Set up the buffers
+	unsigned int handle[2];
+	glGenBuffers(2, handle);
+
+	glBindBuffer(GL_ARRAY_BUFFER, handle[0]);
+	glBufferData(GL_ARRAY_BUFFER, 6 * 3 * sizeof(float), vert, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, handle[1]);
+	glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), tc, GL_STATIC_DRAW);
+
+	// Set up the vertex array object
+	glGenVertexArrays(1, &bufferTextures.frame_Quad);
+	glBindVertexArray(bufferTextures.frame_Quad);
+
+	glBindBuffer(GL_ARRAY_BUFFER, handle[0]);
+	glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0); // Vertex position
+
+	glBindBuffer(GL_ARRAY_BUFFER, handle[1]);
+	glVertexAttribPointer((GLuint)2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(2); // Texture coordinates
+
+	glBindVertexArray(0); // Set back to default 
+
 }
 
 
@@ -421,6 +509,7 @@ void SceneBasic_Uniform::setLights()
 	progs.at(currentProg)->setUniform("gammaCorrection", gammaCorrection);
 	progs.at(currentProg)->setUniform("doHDRToneMapping", doHDRToneMapping);
 	progs.at(currentProg)->setUniform("skyboxBrightness", skyboxBrightness);
+	progs.at(currentProg)->setUniform("Exposure", hdrExposure);
 
 	for(int i = 0; i < lights.size(); i++)
 	{
@@ -454,6 +543,121 @@ void SceneBasic_Uniform::setLights()
 		uName = "lights[" + id + "].cutoffOuter";
 		progs.at(currentProg)->setUniform(uName.c_str(), glm::radians(lights.at(i).cutoffOuter));
 	}
+}
+
+
+
+void SceneBasic_Uniform::drawPassOne()
+{
+	progs.at(currentProg)->setUniform("PassNo", 1);
+
+	// Set clear colour and viewport size
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	glViewport(0, 0, width, height);
+
+	// Bind HDR frame buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, bufferTextures.hdr_FBO);
+
+	// Prepare for rendering to HDR frame buffer
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+
+	//view = glm::lookAt(vec3(2.0f, 0.0f, 14.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
+	//projection = glm::perspective(glm::radians(60.0f), (float)width / height, 0.3f, 100.0f);
+
+	//// Draw scene to HDR frame buffer
+	//drawScene();
+
+}
+
+void SceneBasic_Uniform::drawPassTwo()
+{
+	progs.at(currentProg)->setUniform("PassNo", 2);
+
+	// Revert to default framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glDisable(GL_DEPTH_TEST);
+
+	mat4 m = mat4(1.0f);
+
+	progs.at(currentProg)->setUniform("NormalMatrix", m);
+	progs.at(currentProg)->setUniform("ObjectModelMatrix", m);
+	progs.at(currentProg)->setUniform("ModelMatrix", m);
+	progs.at(currentProg)->setUniform("ModelViewMatrix", m);
+	progs.at(currentProg)->setUniform("ViewMatrix", m);
+	progs.at(currentProg)->setUniform("ViewProjectionMatrix", m);
+	progs.at(currentProg)->setUniform("MVP", m);
+	
+	// Render the quad
+	glBindVertexArray(bufferTextures.frame_Quad);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+void SceneBasic_Uniform::computeAvgLuminance()
+{
+	int size = width * height;
+
+	std::vector<GLfloat> texData(size * 3);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, bufferTextures.hdr_Colour);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, texData.data());
+
+	float sum = 0.0f;
+	for (int i = 0; i < size; i++) 
+	{
+		float lum = glm::dot(vec3(texData[i * 3 + 0], texData[i * 3 + 1],	texData[i * 3 + 2]), vec3(0.2126f, 0.7152f, 0.0722f));
+		sum += logf(lum + 0.00001f);
+	}
+
+	progs.at(currentProg)->setUniform("AverageLumen", expf(sum / size));
+}
+
+
+void SceneBasic_Uniform::drawScene()
+{
+	setMatrices();
+	setLights();
+
+
+	setMeshUniforms(&floor);
+	floor.render();
+	
+	setMeshUniforms(&box);
+	box.render();
+
+	setMeshUniforms(piggy.get());
+	piggy->render();
+
+	setMeshUniforms(&torus);
+	torus.render();
+
+	setMeshUniforms(&teapot);
+	teapot.render();
+
+	
+	std::string currentShader = currentProg;
+	//changeShader("Blinn-Phong Normal Map Shader");
+	//setMatrices();
+	//setLights();
+	
+	setMeshUniforms(&metalCube);
+	metalCube.render();
+
+	setMeshUniforms(ogre.get());
+	ogre->render();
+	
+	//changeShader(currentShader);
+
+
+	//glDepthMask(GL_FALSE);
+	changeShader("Skybox Shader");
+	progs.at(currentProg)->setUniform("ViewProjectionMatrix", (cam->getProjection() * cam->getView() * skyboxRotate180Y));
+	skybox.render();
+	changeShader(currentShader);
+	//glDepthMask(GL_TRUE);
 }
 
 
@@ -560,6 +764,8 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::Checkbox("HDR Tone Mapping", &doHDRToneMapping);
 		ImGui::Spacing();
 		ImGui::SliderFloat("Skybox Brightness", &skyboxBrightness, 0.01f, 100.0f);
+		ImGui::Spacing();
+		ImGui::SliderFloat("HDR Exposure", &hdrExposure, 0.01f, 5.0f);
 		ImGui::Separator();
 		ImGui::Spacing();
 
@@ -630,48 +836,24 @@ void SceneBasic_Uniform::render()
 
 	drawGUI();
 
+	if(currentProg == "PBR + HDR Shader")
+	{
+		drawPassOne();
 
-	setMatrices();
-	setLights();
+		drawScene();
 
+		computeAvgLuminance();
 
-	setMeshUniforms(&floor);
-	floor.render();
-	
-	setMeshUniforms(&box);
-	box.render();
+		drawPassTwo();
+	}
+	else
+	{
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	setMeshUniforms(piggy.get());
-	piggy->render();
-
-	setMeshUniforms(&torus);
-	torus.render();
-
-	setMeshUniforms(&teapot);
-	teapot.render();
-
-	
-	std::string currentShader = currentProg;
-	//changeShader("Blinn-Phong Normal Map Shader");
-	//setMatrices();
-	//setLights();
-	
-	setMeshUniforms(&metalCube);
-	metalCube.render();
-
-	setMeshUniforms(ogre.get());
-	ogre->render();
-	
-	//changeShader(currentShader);
-
-
-	//glDepthMask(GL_FALSE);
-	changeShader("Skybox Shader");
-	progs.at(currentProg)->setUniform("ViewProjectionMatrix", (cam->getProjection() * cam->getView() * skyboxRotate180Y));
-	skybox.render();
-	changeShader(currentShader);
-	//glDepthMask(GL_TRUE);
-
+		drawScene();
+	}
 }
 
 

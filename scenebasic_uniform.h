@@ -26,12 +26,13 @@ private:
     std::string currentProg;
     //GLSLProgram prog;
     std::map<std::string, std::unique_ptr<GLSLProgram>> progs;
-
+	
 	std::vector<LightInfo> lights;
 
 	float gammaCorrection = 2.2f;
 	bool doHDRToneMapping = true;
 	float skyboxBrightness = 1.0f;
+	float hdrExposure = 1.0f;
 
 	glm::mat4 skyboxRotate180Y = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -45,9 +46,18 @@ private:
     std::unique_ptr<ObjMesh> ogre;
 
     void compile();
+
+	void setupFBO();
+	void setupFrameQuad();
+
     void setMatrices();
     void setMeshUniforms(TriangleMesh* mesh);
 	void setLights();
+
+	void drawPassOne();
+	void drawPassTwo();
+	void computeAvgLuminance();
+	void drawScene();
     void drawGUI();
 
 public:
@@ -62,6 +72,14 @@ public:
     virtual ~SceneBasic_Uniform() {};
 
 private:
+	struct BufferTextures
+	{
+		GLuint frame_Quad;
+		GLuint hdr_FBO;
+		GLuint hdr_Colour;
+		GLuint hdr_averageLumen;
+	}bufferTextures;
+
     struct Textures
 	{
 
@@ -204,6 +222,7 @@ private:
 		std::string groupPath_hdr = "media/3rd_party/cubemaps-hdr/";
 
 		GLuint skybox_ArchesE_PineTree =	Texture::loadHdrCubeMap(groupPath_hdr + "Arches_E_PineTree/arches");
+		GLuint skybox_env_ArchesE_PineTree =	Texture::loadHdrCubeMap(groupPath_hdr + "Arches_E_PineTree/arches_env");
 		//GLuint skybox_IceLake =				Texture::loadHdrCubeMap(groupPath_hdr + "media/texture/skybox/lake180");
 		//GLuint skybox_Milkyway =			Texture::loadHdrCubeMap(groupPath_hdr + "media/texture/skybox/lake180");
 		//GLuint skybox_MonoLakeC =			Texture::loadHdrCubeMap(groupPath_hdr + "media/texture/skybox/lake180");
