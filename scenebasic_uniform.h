@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 
 #include <memory>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "helper/scene.h"
 #include "helper/glslprogram.h"
@@ -28,8 +29,11 @@ private:
 
 	std::vector<LightInfo> lights;
 
-	float gammaCorrection = 1.0f;
-	bool doHDRToneMapping = false;
+	float gammaCorrection = 2.2f;
+	bool doHDRToneMapping = true;
+	float skyboxBrightness = 1.0f;
+
+	glm::mat4 skyboxRotate180Y = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     SkyBox skybox;
     Plane floor;
@@ -62,7 +66,7 @@ private:
 	{
 
 		GLuint skybox_MountainLake =		Texture::loadCubeMap("media/texture/skybox/lake180", ".jpg");
-		//GLuint skybox_PisaHDR =				Texture::loadHdrCubeMap("media/texture/cube/pisa-hdr");
+		GLuint skybox_PisaHDR =				Texture::loadHdrCubeMap("media/texture/cube/pisa-hdr/pisa");
 
 		GLuint brick_Albedo =				Texture::loadTexture("media/texture/brick/brick1.jpg");
 		//GLuint brick_NormalMap =			Texture::loadTexture("media/texture/brick/NormalMap.png");

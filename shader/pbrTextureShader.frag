@@ -20,9 +20,11 @@ layout (binding = 6) uniform sampler2D AlphaTex;
 uniform float AlphaDiscard;
 uniform mat4 ViewMatrix;
 uniform mat4 ModelViewMatrix;
+uniform mat4 SkyboxRotationMatrix;
 
 uniform float gammaCorrection;
 uniform bool doHDRToneMapping;
+uniform float skyboxBrightness;
 
 const float Pi = 3.14159265358979323846;
 
@@ -175,17 +177,38 @@ vec3 computeMicrofacetModel(in int lightNo, in vec3 F0, in vec3 n, in vec3 v) {
 //    vec3 fd = mix(albedo, vec3(0.0), material.metallic);
 //    vec3 fd = mix(albedo, reflectionColour, material.metallic);
     
-
-//    return ((fd * albedo / Pi) + fs) * radiance * dot(n, -s);
-    return (fd * material.albedo.rgb / Pi + fs) * radiance * max(dot(n, -s), 0.0);
-//    return ((fd * material.albedo.rgb) / Pi + fs) * radiance * max(dot(n, -s), 0.0);
-//    return (((fd * material.albedo.rgb) / Pi) + fs + reflectionColour ) * radiance * max(dot(n, -s), 0.0);
-//    return (fd * albedo / Pi + fs) * radiance * max(dot(n, -s), 0.0);
-
-//    return (fd + Pi * fs) * radiance * max(dot(n, -s), 0.0);
-//    return ((fd * albedo) + Pi * fs) * radiance * max(dot(n, -s), 0.0);
-//    return (((fd * vec3(1.0)) / Pi) + fs) * radiance * max(dot(n, -s), 0.0);
-//    return (((fd * material.colour.rgb) / Pi) + fs) * radiance * dot(n, -s);
+//    
+//    // skybox reflection vector
+//    vec3 r = normalize(mat3(transpose(ViewMatrix)) * reflect(normalize(Position).xyz, Normal)).xyz; // transpose to get the inverse of ViewMatrix
+//    vec3 reflection = texture(Skybox, r).rgb; // skybox reflection colour
+//    vec3 reflectionColour = (reflection * (1.0 - material.roughness) * material.metallic);// material.albedo.rgb );
+////    vec3 reflectionColour = mix((reflection * (1.0 - material.roughness)), material.albedo.rgb, (1.0 - material.metallic));
+////    vec3 reflectionColour = (reflection * material.albedo.rgb * (1.0 - material.roughness) * material.metallic);
+//
+//
+////    vec3 kd = 1.0 - clamp(fresnelSchlickRoughness(n, v, F0), 0.0, 1.0);
+//
+////    vec3 diffuse = (texture(EnvironmentMap, n).rgb) * (reflectionColour + material.albedo.rgb);
+//    vec3 diffuse = (texture(EnvironmentMap, n).rgb + reflectionColour) * material.albedo.rgb;
+////    vec3 diffuse = mix(material.albedo.rgb, reflectionColour, material.roughness) * texture(EnvironmentMap, n).rgb;
+//
+////    vec3 ambient = (kd * diffuse) * material.ao;
+//    vec3 ambient = ( diffuse) * material.ao;
+//
+////    ambient = vec3(0.2);
+//    
+//    return ((fd * material.albedo.rgb) / Pi + ambient + (diffuse) + fs) * radiance * max(dot(n, -s), 0.0) ;
+//
+////    return ((fd * albedo / Pi) + fs) * radiance * dot(n, -s);
+    return ((fd * material.albedo.rgb) / Pi + fs) * radiance * max(dot(n, -s), 0.0);
+////    return ((fd * material.albedo.rgb) / Pi + fs) * radiance * max(dot(n, -s), 0.0);
+////    return (((fd * material.albedo.rgb) / Pi) + fs + reflectionColour ) * radiance * max(dot(n, -s), 0.0);
+////    return (fd * albedo / Pi + fs) * radiance * max(dot(n, -s), 0.0);
+//
+////    return (fd + Pi * fs) * radiance * max(dot(n, -s), 0.0);
+////    return ((fd * albedo) + Pi * fs) * radiance * max(dot(n, -s), 0.0);
+////    return (((fd * vec3(1.0)) / Pi) + fs) * radiance * max(dot(n, -s), 0.0);
+////    return (((fd * material.colour.rgb) / Pi) + fs) * radiance * dot(n, -s);
 }
 
 
@@ -239,7 +262,7 @@ void main() {
 
     
     // skybox reflection vector
-    vec3 r = normalize(mat3(transpose(ViewMatrix)) * reflect(normalize(Position).xyz, Normal)).xyz; // transpose to get the inverse of ViewMatrix
+    vec3 r = normalize(mat3(transpose(SkyboxRotationMatrix)) * reflect(normalize(Position).xyz, Normal)).xyz; // transpose to get the inverse of ViewMatrix
     vec3 reflection = texture(Skybox, r).rgb; // skybox reflection colour
     vec3 reflectionColour = (reflection * (1.0 - material.roughness) * material.metallic);// material.albedo.rgb );
 //    vec3 reflectionColour = mix((reflection * (1.0 - material.roughness)), material.albedo.rgb, (1.0 - material.metallic));
@@ -247,14 +270,20 @@ void main() {
 
 
 //    vec3 kd = 1.0 - fresnelSchlickRoughness(n, v, F0);
-    vec3 kd = 1.0 - fresnelReflection(n, v, F0);
+//    vec3 kd = 1.0 - fresnelReflection(n, v, F0);
+    vec3 kd = fresnelReflection(n, v, F0);
+//    vec3 kd = fresnelSchlickRoughness(n, v, F0);
 
-    vec3 diffuse = (texture(EnvironmentMap, n).rgb + reflectionColour) * material.albedo.rgb;
-//    vec3 diffuse = mix(material.albedo.rgb, reflectionColour, material.roughness) * texture(EnvironmentMap, n).rgb;
+    vec3 diffuse = (texture(EnvironmentMap, (mat3(transpose(SkyboxRotationMatrix)) * n)).rgb * reflectionColour) * material.albedo.rgb * skyboxBrightness;
+//    vec3 diffuse = (texture(EnvironmentMap, n).rgb * reflectionColour) * material.albedo.rgb;
+//    vec3 diffuse = mix(reflectionColour, material.albedo.rgb, material.roughness) * texture(EnvironmentMap, n).rgb;
 
+    vec3 ambient = (diffuse) * material.ao;
+//    vec3 ambient = (vec3(0.03) * diffuse) * material.ao;
 //    vec3 ambient = (kd * diffuse) * material.ao;
-    vec3 ambient = ( diffuse) * material.ao;
+//    vec3 ambient = ( diffuse) * material.ao;
 
+//    vec3 colour = Lo;
     vec3 colour = ambient + Lo;
 
 //    vec3 colour = (vec3(0.03) * material.albedo.rgb * material.ao) + reflectionColour + Lo;

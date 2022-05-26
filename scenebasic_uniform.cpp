@@ -58,13 +58,13 @@ std::vector<std::vector<std::string>> shaders  {
 	//	"shader/blinnPhongShader_normalMap.vert",
 	//	"shader/blinnPhongShader_normalMap.frag"},
 
-	{"PBR Shader",
-		"shader/pbrShader.vert",
-		"shader/pbrShader.frag"},
-
 	{"PBR Texture Shader",
 		"shader/pbrTextureShader.vert",
 		"shader/pbrTextureShader.frag"},
+
+	{"PBR Shader",
+		"shader/pbrShader.vert",
+		"shader/pbrShader.frag"},
 
 	{"Skybox Shader",
 		"shader/skyboxShader.vert",
@@ -108,11 +108,13 @@ void SceneBasic_Uniform::initScene()
 	
 	// Setting object textures
 	{
-		//skybox.material.skyboxCubeMap = Texture::loadHdrCubeMap("../PrototypeShadersDevTool/media/texture/cube/pisa-hdr/pisa");
-		//skybox.material.skyboxCubeMap = textures.skybox_MountainLake;
-		//skybox.material.skyboxCubeMap = textures.skybox_ArchesE_PineTree;
+		////skybox.material.skyboxCubeMap = Texture::loadHdrCubeMap("../PrototypeShadersDevTool/media/texture/cube/pisa-hdr/pisa");
+		////skybox.material.skyboxCubeMap = textures.skybox_MountainLake;
+		////skybox.material.skyboxCubeMap = textures.skybox_ArchesE_PineTree;
 		skybox.material.skyboxCubeMap = textures.skybox_SummiPool;
 		skybox.material.skyboxEnvCubeMap = textures.skybox_env_SummiPool;
+		//skybox.material.skyboxCubeMap = textures.skybox_PisaHDR;
+		//skybox.material.skyboxEnvCubeMap = textures.skybox_PisaHDR;
 		
 		floor.material.albedoTex = textures.grayGraniteFlecks_Albedo;
 		floor.material.roughnessTex = textures.grayGraniteFlecks_Roughness;
@@ -354,6 +356,7 @@ void SceneBasic_Uniform::setMatrices()
 	progs.at(currentProg)->setUniform("ModelMatrix", cam->getModel());
 	progs.at(currentProg)->setUniform("MVP", cam->getProjection() * mv);
 	progs.at(currentProg)->setUniform("ViewProjectionMatrix", (cam->getProjection() * cam->getView()));
+	progs.at(currentProg)->setUniform("SkyboxRotationMatrix", (cam->getView() * skyboxRotate180Y));
 	//progs.at(currentProg)->setUniform("NormalMatrix", mat3(mv[0], mv[1], mv[2]));
 	//progs.at(currentProg)->setUniform("ModelMatrix", cam->getModel());
 	//progs.at(currentProg)->setUniform("ViewMatrix", cam->getView());
@@ -417,6 +420,7 @@ void SceneBasic_Uniform::setLights()
 
 	progs.at(currentProg)->setUniform("gammaCorrection", gammaCorrection);
 	progs.at(currentProg)->setUniform("doHDRToneMapping", doHDRToneMapping);
+	progs.at(currentProg)->setUniform("skyboxBrightness", skyboxBrightness);
 
 	for(int i = 0; i < lights.size(); i++)
 	{
@@ -460,9 +464,7 @@ void SceneBasic_Uniform::drawGUI()
 	ImGui::Begin("Camera data");
 		cam->drawGUI();
 	ImGui::End();
-
-
-
+	
 	ImGui::Begin("Object Material Info");
 	{
 		ImGui::SliderFloat("Alpha discard", &alphaDiscard, 0.0f, 1.0f);
@@ -556,6 +558,8 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::SliderFloat("Gamma Correction", &gammaCorrection, 0.01f, 5.0f);
 		ImGui::Spacing();
 		ImGui::Checkbox("HDR Tone Mapping", &doHDRToneMapping);
+		ImGui::Spacing();
+		ImGui::SliderFloat("Skybox Brightness", &skyboxBrightness, 0.01f, 100.0f);
 		ImGui::Separator();
 		ImGui::Spacing();
 
@@ -661,10 +665,9 @@ void SceneBasic_Uniform::render()
 	//changeShader(currentShader);
 
 
-
 	//glDepthMask(GL_FALSE);
 	changeShader("Skybox Shader");
-	progs.at(currentProg)->setUniform("ViewProjectionMatrix", (cam->getProjection() * cam->getView()));
+	progs.at(currentProg)->setUniform("ViewProjectionMatrix", (cam->getProjection() * cam->getView() * skyboxRotate180Y));
 	skybox.render();
 	changeShader(currentShader);
 	//glDepthMask(GL_TRUE);

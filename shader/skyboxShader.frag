@@ -19,6 +19,6 @@ void main() {
     colour = colour / (colour + vec3(1.0));
     colour = pow(colour, vec3(1.0/2.2));
 
-// Correct for my Model usage
+    // Correct for my Model usage
     FragColor = vec4(colour, 1.0);
 }
