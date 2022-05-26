@@ -223,5 +223,17 @@
     <None Include="shader\pbrShader.frag">
       <Filter>shader</Filter>
     </None>
+    <None Include="shader\pbrTextureShader.vert">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\pbrTextureShader.frag">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\deferredShader.vert">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\deferredShader.frag">
+      <Filter>shader</Filter>
+    </None>
   </ItemGroup>
 </Project>

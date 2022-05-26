@@ -213,8 +213,12 @@
     <None Include="shader\blinnPhongShader.vert" />
     <None Include="shader\blinnPhongShader_normalMap.frag" />
     <None Include="shader\blinnPhongShader_normalMap.vert" />
+    <None Include="shader\deferredShader.frag" />
+    <None Include="shader\deferredShader.vert" />
     <None Include="shader\pbrShader.frag" />
     <None Include="shader\pbrShader.vert" />
+    <None Include="shader\pbrTextureShader.frag" />
+    <None Include="shader\pbrTextureShader.vert" />
     <None Include="shader\skyboxShader.frag" />
     <None Include="shader\skyboxShader.vert" />
   </ItemGroup>

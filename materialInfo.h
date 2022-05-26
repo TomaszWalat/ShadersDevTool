@@ -24,4 +24,5 @@ struct MaterialInfo
 	GLuint ambientOcclusionMap; // for ambient lighting detail (darkening in crevices) - currently unused
 
 	GLuint skyboxCubeMap;		// for skybox objects only - texture that's mapped onto the skybox
+	GLuint skyboxEnvCubeMap;	// for skybox objects only - texture that's used for environment lighting
 };

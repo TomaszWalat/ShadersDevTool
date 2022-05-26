@@ -8,16 +8,21 @@ layout (location = 0) out vec4 FragColor;
 
 
 layout (binding = 0) uniform samplerCube Skybox;
+layout (binding = 7) uniform samplerCube EnvironmentMap;
 
 layout (binding = 1) uniform sampler2D AlbedoTex;
-layout (binding = 2) uniform sampler2D DetailTex;
-layout (binding = 3) uniform sampler2D AlphaTex;
+layout (binding = 2) uniform sampler2D RoughnessTex;
+layout (binding = 3) uniform sampler2D MetallicTex;
+layout (binding = 4) uniform sampler2D NormalMap;
+layout (binding = 5) uniform sampler2D AmbientOcclusionMap;
+layout (binding = 6) uniform sampler2D AlphaTex;
 
 uniform float AlphaDiscard;
 uniform mat4 ViewMatrix;
 uniform mat4 ModelViewMatrix;
 
 uniform float gammaCorrection;
+uniform bool doHDRToneMapping;
 
 const float Pi = 3.14159265358979323846;
 
@@ -38,13 +43,14 @@ uniform struct LightInfo {
 	float cutoffOuter; // Gamma
 } lights[4];
 
-uniform struct MaterialInfo {
+struct MaterialInfo {
 
-	vec4 colour;
+	vec4 albedo;
 
 	float roughness;
-
     float metallic;
+
+    float ao;
 
 } material;
 
@@ -92,12 +98,18 @@ vec3 fresnelReflection(in vec3 h, in vec3 v, in vec3 F0) {
 //    return F0 + (1.0 - F0) * pow(clamp(1.0 - max(dot(h, v), 0.0), 0.0, 1.0), 5.0);
 //    return F0 + (1.0 - F0) * pow(1.0 - dot(h, v), 5.0);
 
-    return F0 + (1.0 - F0) * pow(1.0 - max(dot(h, v), 0.0), 5.0);
+    return F0 + (1.0 - F0) * pow(clamp(1.0 - max(dot(h, v), 0.0), 0.0, 1.0), 5.0);
 //    return F0 + (1.0 - F0) * pow(1.0 - dot(h, v), 5.0);
 }
 
+// Function from https://learnopengl.com/PBR/IBL/Diffuse-irradiance
+// 
+vec3 fresnelSchlickRoughness(in vec3 h, in vec3 v, in vec3 F0)
+{
+    return F0 + (max(vec3(1.0 - material.roughness), F0) - F0) * pow(clamp(1.0 - max(dot(h, v), 0.0), 0.0, 1.0), 5.0);
+}   
 
-vec3 computeMicrofacetModel(in int lightNo, in vec3 F0, in vec3 albedo, in vec3 n) {
+vec3 computeMicrofacetModel(in int lightNo, in vec3 F0, in vec3 n, in vec3 v) {
 
     
     // --- Prep calculations --- //
@@ -105,12 +117,19 @@ vec3 computeMicrofacetModel(in int lightNo, in vec3 F0, in vec3 albedo, in vec3 
 
     vec3 s = normalize((Position * lPosition.w) - lPosition).xyz; // Direction of light ray
 
-    
+//    // skybox reflection vector
+//    vec3 r = normalize(mat3(transpose(ViewMatrix)) * reflect(normalize(Position).xyz, Normal)).xyz; // transpose to get the inverse of ViewMatrix
+//    vec3 reflection = texture(Skybox, r).rgb; // skybox reflection colour
+//    vec3 reflectionColour = (reflection * (1.0 - material.roughness) * material.metallic);// material.albedo.rgb );
+////    vec3 reflectionColour = mix((reflection * (1.0 - material.roughness)), material.albedo.rgb, (1.0 - material.metallic));
+////    vec3 reflectionColour = (reflection * material.albedo.rgb * (1.0 - material.roughness) * material.metallic);
+
+   
     // --- Attenuation calculation --- //
     float lDistance = length(lPosition - Position) * lPosition.w; // Distance from light
 
     float attenuation = 1.0 / (1.0 + lights[lightNo].attenuationLinear * lDistance + lights[lightNo].attenuationQuadratic * (lDistance * lDistance));
-//    float attenuation = 1.0 / (lDistance * lDistance);
+//    float attenuation = 1.0 / ((lDistance * lDistance) + 1.0);
 
 
     // --- Spotlight calculation --- //
@@ -130,14 +149,8 @@ vec3 computeMicrofacetModel(in int lightNo, in vec3 F0, in vec3 albedo, in vec3 
         intensity = clamp((angle - lights[lightNo].cutoffOuter) / epsilon, 0.0, 1.0); // intensity = 1.0 inside the inner cone
     }
     
+//    vec3 radiance = (lights[lightNo].colour * intensity) * attenuation * lights[lightNo].brightness;
     vec3 radiance = (lights[lightNo].colour * lights[lightNo].brightness * intensity) * attenuation;
-
-    // view vector
-    vec3 v = normalize(-Position).xyz; 
-
-    // skybox reflection vector
-    vec3 r = normalize(mat3(transpose(ViewMatrix)) * reflect(normalize(Position).xyz, Normal)).xyz; // transpose to get the inverse of ViewMatrix
-    vec3 reflectionColour = texture(Skybox, r).rgb; // skybox reflection colour
 
     // half vector
     vec3 h = normalize(v + -s);
@@ -155,14 +168,18 @@ vec3 computeMicrofacetModel(in int lightNo, in vec3 F0, in vec3 albedo, in vec3 
 //    vec3 fs = (D * G * F) / (4 * max(dot(n, v), 0.0) * max(dot(n, -s), 0.0) + 0.0001);
 //    vec3 fs = (D * G * F) / (4 * dot(n, v) * dot(n, -s) + 0.0001);
 
-    // diffuse
+    // diffuse - should be called kd
     vec3 fd = (vec3(1.0) - F) * (1.0 - material.metallic);
+//    vec3 fd = (vec3(1.0) - F) * (((1.0 - material.metallic) + 0.1) + (reflectionColour * (1.0 - material.roughness)));
+//    vec3 fd = ((vec3(1.0) - F) + reflectionColour * (1.0 - material.roughness)) * ((1.0 - material.metallic) + 0.1);// + (reflectionColour * (1.0 - material.roughness)));
 //    vec3 fd = mix(albedo, vec3(0.0), material.metallic);
 //    vec3 fd = mix(albedo, reflectionColour, material.metallic);
     
 
 //    return ((fd * albedo / Pi) + fs) * radiance * dot(n, -s);
-    return ((fd * albedo) / Pi + fs) * radiance * max(dot(n, -s), 0.0);
+    return (fd * material.albedo.rgb / Pi + fs) * radiance * max(dot(n, -s), 0.0);
+//    return ((fd * material.albedo.rgb) / Pi + fs) * radiance * max(dot(n, -s), 0.0);
+//    return (((fd * material.albedo.rgb) / Pi) + fs + reflectionColour ) * radiance * max(dot(n, -s), 0.0);
 //    return (fd * albedo / Pi + fs) * radiance * max(dot(n, -s), 0.0);
 
 //    return (fd + Pi * fs) * radiance * max(dot(n, -s), 0.0);
@@ -177,10 +194,19 @@ void main() {
     vec3 Lo = vec3(0.0);
 
     // Get texture pixel
-    vec4 albedoTexColour = texture(AlbedoTex, TexCoord);
+    material.albedo = pow(texture(AlbedoTex, TexCoord), vec4(2.2));
+//    vec4 albedoTexColour = pow(texture(AlbedoTex, TexCoord), vec4(2.2));
 //    vec4 detailTexColour = texture(DetailTex, TexCoord); // Not proper detail, just secondary albedo
+    material.metallic = texture(MetallicTex, TexCoord).r;
+    material.roughness = texture(RoughnessTex, TexCoord).r;
+    material.ao = texture(AmbientOcclusionMap, TexCoord).r;
     vec4 alphaMap = texture(AlphaTex, TexCoord);
     
+    
+    // view vector
+    vec3 v = normalize(-Position).xyz; 
+
+
     // Discard fragment based on alpah map
     if(alphaMap.a < AlphaDiscard)
     {
@@ -198,24 +224,48 @@ void main() {
 
     // Mix texture with base model colour (set colour alpha to 0 to discard it)
 //    vec3 texColour = mix(albedoTexColour.rgb, material.colour.rgb, material.colour.a);
-    vec3 texColour = albedoTexColour.rgb;
+//    vec3 texColour = albedoTexColour.rgb;
 
     // Calculate surface base reflectivity
     vec3 F0 = vec3(0.04);
-    F0 = mix(F0, texColour, material.metallic);
-//    F0 = mix(F0, texColour, (1.0 - material.metallic));
+    F0 = mix(F0, material.albedo.rgb, material.metallic);
+//    F0 = mix(F0, material.albedo.rgb, (1.0 - material.metallic));
 
-    // Compute reflection
+    // Compute lighting
     for(int i = 0; i < 4; i++)
     {
-        Lo += computeMicrofacetModel(i, F0, texColour, n);
+        Lo += computeMicrofacetModel(i, F0, n, v);
     }
 
-    vec3 colour = (vec3(0.03) * texColour) + Lo;
-//    vec3 colour = Lo;
-//
-//    // HDR tonemapping
-//    colour = colour / (colour + vec3(1.0));
+    
+    // skybox reflection vector
+    vec3 r = normalize(mat3(transpose(ViewMatrix)) * reflect(normalize(Position).xyz, Normal)).xyz; // transpose to get the inverse of ViewMatrix
+    vec3 reflection = texture(Skybox, r).rgb; // skybox reflection colour
+    vec3 reflectionColour = (reflection * (1.0 - material.roughness) * material.metallic);// material.albedo.rgb );
+//    vec3 reflectionColour = mix((reflection * (1.0 - material.roughness)), material.albedo.rgb, (1.0 - material.metallic));
+//    vec3 reflectionColour = (reflection * material.albedo.rgb * (1.0 - material.roughness) * material.metallic);
+
+
+//    vec3 kd = 1.0 - fresnelSchlickRoughness(n, v, F0);
+    vec3 kd = 1.0 - fresnelReflection(n, v, F0);
+
+    vec3 diffuse = (texture(EnvironmentMap, n).rgb + reflectionColour) * material.albedo.rgb;
+//    vec3 diffuse = mix(material.albedo.rgb, reflectionColour, material.roughness) * texture(EnvironmentMap, n).rgb;
+
+//    vec3 ambient = (kd * diffuse) * material.ao;
+    vec3 ambient = ( diffuse) * material.ao;
+
+    vec3 colour = ambient + Lo;
+
+//    vec3 colour = (vec3(0.03) * material.albedo.rgb * material.ao) + reflectionColour + Lo;
+//    vec3 colour = (vec3(0.03) * material.albedo.rgb * material.ao) + Lo;
+////    vec3 colour = Lo;
+
+    // HDR tonemapping
+    if(doHDRToneMapping)
+    {
+        colour = colour / (colour + vec3(1.0));
+    }
 
     // Gamma correction
     colour = pow(colour, vec3(1.0/gammaCorrection));

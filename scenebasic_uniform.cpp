@@ -62,6 +62,10 @@ std::vector<std::vector<std::string>> shaders  {
 		"shader/pbrShader.vert",
 		"shader/pbrShader.frag"},
 
+	{"PBR Texture Shader",
+		"shader/pbrTextureShader.vert",
+		"shader/pbrTextureShader.frag"},
+
 	{"Skybox Shader",
 		"shader/skyboxShader.vert",
 		"shader/skyboxShader.frag"},
@@ -105,20 +109,41 @@ void SceneBasic_Uniform::initScene()
 	// Setting object textures
 	{
 		//skybox.material.skyboxCubeMap = Texture::loadHdrCubeMap("../PrototypeShadersDevTool/media/texture/cube/pisa-hdr/pisa");
-		skybox.material.skyboxCubeMap = textures.skybox_MountainLake;
+		//skybox.material.skyboxCubeMap = textures.skybox_MountainLake;
+		//skybox.material.skyboxCubeMap = textures.skybox_ArchesE_PineTree;
+		skybox.material.skyboxCubeMap = textures.skybox_SummiPool;
+		skybox.material.skyboxEnvCubeMap = textures.skybox_env_SummiPool;
 		
 		floor.material.albedoTex = textures.grayGraniteFlecks_Albedo;
+		floor.material.roughnessTex = textures.grayGraniteFlecks_Roughness;
+		floor.material.metallicTex = textures.grayGraniteFlecks_Metallic;
+		floor.material.normalMap = textures.grayGraniteFlecks_NormalMap;
+		////floor.material.displacementMap = textures.grayGraniteFlecks_;
+		floor.material.ambientOcclusionMap = textures.grayGraniteFlecks_AmbientOcclusionMap;
+
 		//floor.material.albedoTex = textures.cement;
 		//floor.material.detailTex = textures.cement;
 		
 		metalCube.material.albedoTex = textures.rustedIron_Albedo;
-		metalCube.material.normalMap = textures.ripple_NormalMap;
+		metalCube.material.roughnessTex = textures.rustedIron_Roughness;
+		metalCube.material.metallicTex = textures.rustedIron_Metallic;
+		metalCube.material.normalMap = textures.rustedIron_NormalMap;
+		////metalCube.material.displacementMap = textures.rustedIron_;
+		metalCube.material.ambientOcclusionMap = textures.rustedIron_AmbientOcclusionMap;
+		
+		//metalCube.material.normalMap = textures.ripple_NormalMap;
 		//metalCube.material.displacementMap = textures.ripple_DisplacementMap;
 		//metalCube.material.ambientOcclusionMap = textures.ripple_AmbientOcclusionMap;
 		//metalCube.material.specularMap = textures.ripple_SpecularMap;
-		metalCube.material.colour = vec4(1.0f);
+		//metalCube.material.colour = vec4(1.0f);
 
-		box.material.albedoTex = textures.brick_Albedo;
+		box.material.albedoTex = textures.redBrick_Albedo;
+		box.material.roughnessTex = textures.redBrick_Roughness;
+		box.material.metallicTex = textures.redBrick_Metallic;
+		box.material.normalMap = textures.redBrick_NormalMap;
+		//box.material.displacementMap = textures.redBrick_HeightMap;
+		box.material.ambientOcclusionMap = textures.redBrick_AmbientOcclusionMap;
+
 		//box.material.detailTex = textures.moss;
 		//box.material.alphaMap = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/brick/brick1.jpg");
 		//box.material.normalMap = textures.brick_NormalMap;
@@ -127,22 +152,46 @@ void SceneBasic_Uniform::initScene()
 		//box.material.specularMap = textures.brick_SpecularMap;
 
 		torus.material.albedoTex = textures.bambooWood_Albedo;
+		torus.material.roughnessTex = textures.bambooWood_Albedo;
+		torus.material.metallicTex = textures.bambooWood_Albedo;
+		torus.material.normalMap = textures.bambooWood_Albedo;
+		//torus.material.displacementMap = textures.bambooWood_Albedo;
+		torus.material.ambientOcclusionMap = textures.bambooWood_Albedo;
+
 		//torus.material.detailTex = textures.wood_Albedo;
 
-		teapot.material.albedoTex = textures.copperScuffed_Albedo;
+		teapot.material.albedoTex = textures.copperScuffed_Albedo_Boosted;
+		teapot.material.roughnessTex = textures.copperScuffed_Roughness;
+		teapot.material.metallicTex = textures.copperScuffed_Metallic;
+		teapot.material.normalMap = textures.copperScuffed_NormalMap;
+		////teapot.material.displacementMap = textures.copperScuffed_;
+		teapot.material.ambientOcclusionMap = textures.copperScuffed_AmbientOcclusionMap;
+		teapot.material.alphaMap = textures.alienMetal_AmbientOcclusionMap;
+
 		//teapot.material.detailTex = textures.wood_Albedo;
-		teapot.material.alphaMap = textures.fire;
 
 		piggy->material.albedoTex = textures.scuffedPlastic_Albedo;
+		piggy->material.roughnessTex = textures.scuffedPlastic_Roughness;
+		piggy->material.metallicTex = textures.scuffedPlastic_Metallic;
+		piggy->material.normalMap = textures.scuffedPlastic_NormalMap;
+		////piggy->material.displacementMap = textures.scuffedPlastic_;
+		piggy->material.ambientOcclusionMap = textures.scuffedPlastic_AmbientOcclusionMap;
+
 		//piggy->material.detailTex = textures.spotCow_Albedo;
 
 
 		ogre->material.albedoTex = textures.ogre_Albedo;
+		ogre->material.roughnessTex = textures.humanSkin_Roughness;
+		ogre->material.metallicTex = textures.humanSkin_Metallic;
 		ogre->material.normalMap = textures.ogre_NormalMap;
+		//ogre->material.displacementMap = textures.humanSkin_HeightMap;
+		ogre->material.ambientOcclusionMap = textures.ogre_AmbientOcclusionMap;
 
 		//activate and bind texture
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.material.skyboxCubeMap);
+		glActiveTexture(GL_TEXTURE7);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.material.skyboxEnvCubeMap);
 	}
 
 	// Positioning objects
@@ -188,18 +237,18 @@ void SceneBasic_Uniform::initScene()
 		box.material.roughness = 1.0f;
 		box.material.metallic = 0.0f;
 		
-		piggy->material.roughness = 0.01f;
+		piggy->material.roughness = 0.05f;
 		piggy->material.metallic = 0.0f;
 		piggy->material.colour = vec4(0.95f, 1.0f, 0.5f, 1.0f);
 		
-		metalCube.material.roughness = 0.01f;
+		metalCube.material.roughness = 0.05f;
 		metalCube.material.metallic = 1.0f;
 		metalCube.material.colour = vec4(1.0f);
 
 		torus.material.roughness = 0.5f;
 		torus.material.metallic = 0.0f;
 		
-		ogre->material.roughness = 0.1f;
+		ogre->material.roughness = 0.8f;
 		ogre->material.metallic = 0.0f;
 
 		teapot.material.roughness = 1.0f;
@@ -337,13 +386,25 @@ void SceneBasic_Uniform::setMeshUniforms(TriangleMesh* mesh)
 
 	//glActiveTexture(GL_TEXTURE2);
 	//glBindTexture(GL_TEXTURE_2D, mesh->material.detailTex);
+	
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, mesh->material.roughnessTex);
 
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, mesh->material.alphaMap);
-	
+	glBindTexture(GL_TEXTURE_2D, mesh->material.metallicTex);
+
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, mesh->material.normalMap);
+	
+	//glActiveTexture(GL_TEXTURE5);
+	//glBindTexture(GL_TEXTURE_2D, mesh->material.displacementMap);
 
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, mesh->material.ambientOcclusionMap);
+
+	glActiveTexture(GL_TEXTURE6);
+	glBindTexture(GL_TEXTURE_2D, mesh->material.alphaMap);
+	
 
 	//mesh = nullptr;
 }
@@ -353,6 +414,9 @@ void SceneBasic_Uniform::setLights()
 {
 	std::string uName;
 	std::string id = "null";
+
+	progs.at(currentProg)->setUniform("gammaCorrection", gammaCorrection);
+	progs.at(currentProg)->setUniform("doHDRToneMapping", doHDRToneMapping);
 
 	for(int i = 0; i < lights.size(); i++)
 	{
@@ -409,7 +473,7 @@ void SceneBasic_Uniform::drawGUI()
 		if(ImGui::CollapsingHeader("Floor"))
 		{
 			
-			ImGui::SliderFloat("Roughness##floor", &floor.material.roughness, 0.01f, 1.0f);
+			ImGui::SliderFloat("Roughness##floor", &floor.material.roughness, 0.05f, 1.0f);
 			ImGui::SliderFloat("Metallic##floor", &floor.material.metallic, 0.0f, 1.0f);
 			ImGui::ColorEdit4("Colour##floor", glm::value_ptr(floor.material.colour));
 		}
@@ -420,7 +484,7 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::PushID(12); // Prevents UI element instance issues
 		if(ImGui::CollapsingHeader("Box"))
 		{
-			ImGui::SliderFloat("Roughness##box", &box.material.roughness, 0.01f, 1.0f);
+			ImGui::SliderFloat("Roughness##box", &box.material.roughness, 0.05f, 1.0f);
 			ImGui::SliderFloat("Metallic##box", &box.material.metallic, 0.0f, 1.0f);
 			ImGui::ColorEdit4("Colour##box", glm::value_ptr(box.material.colour));
 		}
@@ -431,7 +495,7 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::PushID(13); // Prevents UI element instance issues
 		if(ImGui::CollapsingHeader("Piggy"))
 		{
-			ImGui::SliderFloat("Roughness##piggy", &piggy->material.roughness, 0.01f, 1.0f);
+			ImGui::SliderFloat("Roughness##piggy", &piggy->material.roughness, 0.05f, 1.0f);
 			ImGui::SliderFloat("Metallic##piggy", &piggy->material.metallic, 0.0f, 1.0f);
 			ImGui::ColorEdit4("Colour##piggy", glm::value_ptr(piggy->material.colour));
 		}
@@ -442,7 +506,7 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::PushID(14); // Prevents UI element instance issues
 		if(ImGui::CollapsingHeader("Metal Cube"))
 		{
-			ImGui::SliderFloat("Roughness##metalCube", &metalCube.material.roughness, 0.01f, 1.0f);
+			ImGui::SliderFloat("Roughness##metalCube", &metalCube.material.roughness, 0.05f, 1.0f);
 			ImGui::SliderFloat("Metallic##metalCube", &metalCube.material.metallic, 0.0f, 1.0f);
 			ImGui::ColorEdit4("Colour##metalCube", glm::value_ptr(metalCube.material.colour));
 		}
@@ -453,7 +517,7 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::PushID(15); // Prevents UI element instance issues
 		if(ImGui::CollapsingHeader("Torus"))
 		{
-			ImGui::SliderFloat("Roughness##torus", &torus.material.roughness, 0.01f, 1.0f);
+			ImGui::SliderFloat("Roughness##torus", &torus.material.roughness, 0.05f, 1.0f);
 			ImGui::SliderFloat("Metallic##torus", &torus.material.metallic, 0.0f, 1.0f);
 			ImGui::ColorEdit4("Colour##torus", glm::value_ptr(torus.material.colour));
 		}
@@ -464,7 +528,7 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::PushID(16); // Prevents UI element instance issues
 		if(ImGui::CollapsingHeader("Ogre"))
 		{
-			ImGui::SliderFloat("Roughness##ogre", &ogre->material.roughness, 0.01f, 1.0f);
+			ImGui::SliderFloat("Roughness##ogre", &ogre->material.roughness, 0.05f, 1.0f);
 			ImGui::SliderFloat("Metallic##ogre", &ogre->material.metallic, 0.0f, 1.0f);
 			ImGui::ColorEdit4("Colour##ogre", glm::value_ptr(ogre->material.colour));
 		}
@@ -475,7 +539,7 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::PushID(17); // Prevents UI element instance issues
 		if(ImGui::CollapsingHeader("Teapot"))
 		{
-			ImGui::SliderFloat("Roughness##teapot", &teapot.material.roughness, 0.01f, 1.0f);
+			ImGui::SliderFloat("Roughness##teapot", &teapot.material.roughness, 0.05f, 1.0f);
 			ImGui::SliderFloat("Metallic##teapot", &teapot.material.metallic, 0.0f, 1.0f);
 			ImGui::ColorEdit4("Colour##teapot", glm::value_ptr(teapot.material.colour));
 		}
@@ -489,6 +553,12 @@ void SceneBasic_Uniform::drawGUI()
 
 	ImGui::Begin("Light Info");
 	{
+		ImGui::SliderFloat("Gamma Correction", &gammaCorrection, 0.01f, 5.0f);
+		ImGui::Spacing();
+		ImGui::Checkbox("HDR Tone Mapping", &doHDRToneMapping);
+		ImGui::Separator();
+		ImGui::Spacing();
+
 		std::string id = "null";
 		for(int i = 0; i < lights.size(); i++)
 		{
@@ -504,7 +574,7 @@ void SceneBasic_Uniform::drawGUI()
 				ImGui::Spacing();
 				
 				ImGui::ColorEdit3(("Colour##L"+ id).c_str(), glm::value_ptr(lights.at(i).colour));
-				ImGui::SliderFloat(("Brightness##L"+ id).c_str(), &lights.at(i).brightness, 0.01f, 10.0f);
+				ImGui::SliderFloat(("Brightness##L"+ id).c_str(), &lights.at(i).brightness, 0.01f, 100.0f);
 
 				ImGui::Spacing();
 
@@ -526,19 +596,19 @@ void SceneBasic_Uniform::drawGUI()
 	
 
 
-	//ImGui::Begin("Shader Selection");
-	//{
-	//	for(int i = 0; i < shaders.size(); i++)
-	//	{
-	//		if(ImGui::Button(shaders[i][0].c_str()))
-	//		{
-	//			changeShader(shaders[i][0]);
-	//		}
-	//		ImGui::Separator();
-	//		ImGui::Spacing();
-	//	}
-	//}
-	//ImGui::End();
+	ImGui::Begin("Shader Selection");
+	{
+		for(int i = 0; i < shaders.size(); i++)
+		{
+			if(ImGui::Button(shaders[i][0].c_str()))
+			{
+				changeShader(shaders[i][0]);
+			}
+			ImGui::Separator();
+			ImGui::Spacing();
+		}
+	}
+	ImGui::End();
 
 	progs.at(currentProg)->setUniform("AlphaDiscard", alphaDiscard);
 }

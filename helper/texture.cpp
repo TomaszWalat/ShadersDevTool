@@ -69,6 +69,7 @@ GLuint Texture::loadCubeMap(const std::string &baseName, const std::string &exte
 
 GLuint Texture::loadHdrCubeMap(const std::string &baseName) {
     GLuint texID;
+    stbi_set_flip_vertically_on_load(false);
     glGenTextures(1, &texID);
     glBindTexture(GL_TEXTURE_CUBE_MAP, texID);
 

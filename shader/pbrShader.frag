@@ -17,6 +17,9 @@ uniform float AlphaDiscard;
 uniform mat4 ViewMatrix;
 uniform mat4 ModelViewMatrix;
 
+uniform float gammaCorrection;
+uniform bool doHDRToneMapping;
+
 const float Pi = 3.14159265358979323846;
 
 uniform struct LightInfo {
@@ -89,7 +92,9 @@ vec3 fresnelReflection(in vec3 h, in vec3 v, in vec3 F0) {
     
 //    return F0 + (1.0 - F0) * pow(clamp(1.0 - max(dot(h, v), 0.0), 0.0, 1.0), 5.0);
 //    return F0 + (1.0 - F0) * pow(1.0 - dot(h, v), 5.0);
+
     return F0 + (1.0 - F0) * pow(1.0 - max(dot(h, v), 0.0), 5.0);
+//    return F0 + (1.0 - F0) * pow(1.0 - dot(h, v), 5.0);
 }
 
 
@@ -126,7 +131,8 @@ vec3 computeMicrofacetModel(in int lightNo, in vec3 F0, in vec3 albedo, in vec3 
         intensity = clamp((angle - lights[lightNo].cutoffOuter) / epsilon, 0.0, 1.0); // intensity = 1.0 inside the inner cone
     }
     
-    vec3 radiance = lights[lightNo].colour * lights[lightNo].brightness * intensity * attenuation;
+//    vec3 radiance = (lights[lightNo].colour * intensity) * attenuation * lights[lightNo].brightness;
+    vec3 radiance = (lights[lightNo].colour * lights[lightNo].brightness * intensity) * attenuation;
 
     // view vector
     vec3 v = normalize(-Position).xyz; 
@@ -144,8 +150,10 @@ vec3 computeMicrofacetModel(in int lightNo, in vec3 F0, in vec3 albedo, in vec3 
     vec3  F = fresnelReflection(h, v, F0);
 
     // specular
-//    vec3 fs = (D * G * F) * 0.25;
+//    vec3 fs = (D * G * F) / (4 * dot(n, v) * dot(n, -s) + 0.0001);
     vec3 fs = (D * G * F) / (4 * max(dot(n, v), 0.0) * max(dot(n, -s), 0.0) + 0.0001);
+
+//    vec3 fs = (D * G * F) * 0.25;
 //    vec3 fs = (D * G * F) / (4 * max(dot(n, v), 0.0) * max(dot(n, -s), 0.0) + 0.0001);
 //    vec3 fs = (D * G * F) / (4 * dot(n, v) * dot(n, -s) + 0.0001);
 
@@ -155,8 +163,11 @@ vec3 computeMicrofacetModel(in int lightNo, in vec3 F0, in vec3 albedo, in vec3 
 //    vec3 fd = mix(albedo, reflectionColour, material.metallic);
     
 
+//    return ((fd * albedo / Pi) + fs) * radiance * dot(n, -s);
+    return ((fd * albedo) / Pi + fs) * radiance * max(dot(n, -s), 0.0);
+//    return (fd * albedo / Pi + fs) * radiance * max(dot(n, -s), 0.0);
+
 //    return (fd + Pi * fs) * radiance * max(dot(n, -s), 0.0);
-    return ((fd * albedo / Pi) + fs) * radiance * max(dot(n, -s), 0.0);
 //    return ((fd * albedo) + Pi * fs) * radiance * max(dot(n, -s), 0.0);
 //    return (((fd * vec3(1.0)) / Pi) + fs) * radiance * max(dot(n, -s), 0.0);
 //    return (((fd * material.colour.rgb) / Pi) + fs) * radiance * dot(n, -s);
@@ -203,13 +214,16 @@ void main() {
     }
 
     vec3 colour = (vec3(0.03) * texColour) + Lo;
-//    vec3 colour = Lo;
+////    vec3 colour = Lo;
 
     // HDR tonemapping
-    colour = colour / (colour + vec3(1.0));
+    if(doHDRToneMapping)
+    {
+        colour = colour / (colour + vec3(1.0));
+    }
 
     // Gamma correction
-    colour = pow(colour, vec3(1.0/2.2));
+    colour = pow(colour, vec3(1.0/gammaCorrection));
 
 
     FragColor = vec4(colour, 1.0);
