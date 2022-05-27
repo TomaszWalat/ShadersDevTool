@@ -31,8 +31,12 @@ private:
 
 	float gammaCorrection = 2.2f;
 	bool doHDRToneMapping = true;
+	bool doBloom = true;
 	float skyboxBrightness = 1.0f;
 	float hdrExposure = 1.0f;
+	float luminanceThreshold = 1.7f;
+	float weights[10], sum, sigma2 = 25.0f;
+	int bloomBufferWidth, bloomBufferHeight;
 
 	glm::mat4 skyboxRotate180Y = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -47,16 +51,24 @@ private:
 
     void compile();
 
-	void setupFBO();
+	void setupFBOs();
 	void setupFrameQuad();
+	void setupSamplers();
+	void computeWeights();
+	float gauss(float x, float sigma2);
 
     void setMatrices();
     void setMeshUniforms(TriangleMesh* mesh);
 	void setLights();
+	void setWeights();
 
 	void drawPassOne();
 	void drawPassTwo();
-	void computeAvgLuminance();
+	void drawPassThree();
+	void drawPassFour();
+	void drawPassFive();
+	void computeLogAvgLuminance();
+
 	void drawScene();
     void drawGUI();
 
@@ -75,9 +87,10 @@ private:
 	struct BufferTextures
 	{
 		GLuint frame_Quad;
-		GLuint hdr_FBO;
-		GLuint hdr_Colour;
-		GLuint hdr_averageLumen;
+		GLuint hdr_FBO, blur_FBO;
+		GLuint hdr_Colour, blur_One, blur_Two;
+		//GLuint hdr_averageLumen;
+		GLuint linear_Sampler, nearest_Sampler;
 	}bufferTextures;
 
     struct Textures
@@ -132,19 +145,19 @@ private:
 		GLuint alienMetal_HeightMap =					Texture::loadTexture(groupPath_pbr + "alien-metal/alien-metal_height.png");
 		GLuint alienMetal_AmbientOcclusionMap =			Texture::loadTexture(groupPath_pbr + "alien-metal/alien-metal_ao.png");
 
-		GLuint aluminumScuffed_Albedo =					Texture::loadTexture(groupPath_pbr + "aluminum-scuffed/aluminum-scuffed_albedo.png");
-		GLuint aluminumScuffed_Roughness =				Texture::loadTexture(groupPath_pbr + "aluminum-scuffed/aluminum-scuffed_roughness.png");
-		GLuint aluminumScuffed_Metallic =				Texture::loadTexture(groupPath_pbr + "aluminum-scuffed/aluminum-scuffed_metallic.png");
-		GLuint aluminumScuffed_NormalMap =				Texture::loadTexture(groupPath_pbr + "aluminum-scuffed/aluminum-scuffed_normal.png");
-		////GLuint aluminumScuffed_HeightMap =				Texture::loadTexture(groupPath_pbr + "aluminum-scuffed/aluminum-scuffed_height.png");
-		GLuint aluminumScuffed_AmbientOcclusionMap =	Texture::loadTexture(groupPath_pbr + "aluminum-scuffed/aluminum-scuffed_ao.png");
+		//GLuint aluminumScuffed_Albedo =					Texture::loadTexture(groupPath_pbr + "aluminum-scuffed/aluminum-scuffed_albedo.png");
+		//GLuint aluminumScuffed_Roughness =				Texture::loadTexture(groupPath_pbr + "aluminum-scuffed/aluminum-scuffed_roughness.png");
+		//GLuint aluminumScuffed_Metallic =				Texture::loadTexture(groupPath_pbr + "aluminum-scuffed/aluminum-scuffed_metallic.png");
+		//GLuint aluminumScuffed_NormalMap =				Texture::loadTexture(groupPath_pbr + "aluminum-scuffed/aluminum-scuffed_normal.png");
+		//////GLuint aluminumScuffed_HeightMap =				Texture::loadTexture(groupPath_pbr + "aluminum-scuffed/aluminum-scuffed_height.png");
+		//GLuint aluminumScuffed_AmbientOcclusionMap =	Texture::loadTexture(groupPath_pbr + "aluminum-scuffed/aluminum-scuffed_ao.png");
 		
-		GLuint titaniumScuffed_Albedo =					Texture::loadTexture(groupPath_pbr + "titanium-scuffed/titanium-scuffed_albedo.png");
-		GLuint titaniumScuffed_Roughness =				Texture::loadTexture(groupPath_pbr + "titanium-scuffed/titanium-scuffed_roughness.png");
-		GLuint titaniumScuffed_Metallic =				Texture::loadTexture(groupPath_pbr + "titanium-scuffed/titanium-scuffed_metallic.png");
-		GLuint titaniumScuffed_NormalMap =				Texture::loadTexture(groupPath_pbr + "titanium-scuffed/titanium-scuffed_normal.png");
-		////GLuint titaniumScuffed_HeightMap =				Texture::loadTexture(groupPath_pbr + "titanium-scuffed/titanium-scuffed_height.png");
-		GLuint titaniumScuffed_AmbientOcclusionMap =	Texture::loadTexture(groupPath_pbr + "titanium-scuffed/titanium-scuffed_ao.png");
+		//GLuint titaniumScuffed_Albedo =					Texture::loadTexture(groupPath_pbr + "titanium-scuffed/titanium-scuffed_albedo.png");
+		//GLuint titaniumScuffed_Roughness =				Texture::loadTexture(groupPath_pbr + "titanium-scuffed/titanium-scuffed_roughness.png");
+		//GLuint titaniumScuffed_Metallic =				Texture::loadTexture(groupPath_pbr + "titanium-scuffed/titanium-scuffed_metallic.png");
+		//GLuint titaniumScuffed_NormalMap =				Texture::loadTexture(groupPath_pbr + "titanium-scuffed/titanium-scuffed_normal.png");
+		//////GLuint titaniumScuffed_HeightMap =				Texture::loadTexture(groupPath_pbr + "titanium-scuffed/titanium-scuffed_height.png");
+		//GLuint titaniumScuffed_AmbientOcclusionMap =	Texture::loadTexture(groupPath_pbr + "titanium-scuffed/titanium-scuffed_ao.png");
 
     	GLuint copperScuffed_Albedo =					Texture::loadTexture(groupPath_pbr + "copper-scuffed/copper-scuffed_albedo.png");
     	GLuint copperScuffed_Albedo_Boosted =			Texture::loadTexture(groupPath_pbr + "copper-scuffed/copper-scuffed_albedo-boosted.png");
@@ -168,19 +181,19 @@ private:
 		////GLuint bambooWood_HeightMap =					Texture::loadTexture(groupPath_pbr + "bamboo-wood-semigloss/bamboo-wood-semigloss_height.png");
 		GLuint bambooWood_AmbientOcclusionMap =			Texture::loadTexture(groupPath_pbr + "bamboo-wood-semigloss/bamboo-wood-semigloss_ao.png");
 
-		GLuint mahoganyFloor_Albedo =					Texture::loadTexture(groupPath_pbr + "mahogany-floor/mahogany-floor_albedo.png");
+		/*GLuint mahoganyFloor_Albedo =					Texture::loadTexture(groupPath_pbr + "mahogany-floor/mahogany-floor_albedo.png");
 		GLuint mahoganyFloor_Roughness =				Texture::loadTexture(groupPath_pbr + "mahogany-floor/mahogany-floor_roughness.png");
 		GLuint mahoganyFloor_Metallic =					Texture::loadTexture(groupPath_pbr + "mahogany-floor/mahogany-floor_metallic.png");
 		GLuint mahoganyFloor_NormalMap =				Texture::loadTexture(groupPath_pbr + "mahogany-floor/mahogany-floor_normal.png");
 		GLuint mahoganyFloor_HeightMap =				Texture::loadTexture(groupPath_pbr + "mahogany-floor/mahogany-floor_height.png");
-		GLuint mahoganyFloor_AmbientOcclusionMap =		Texture::loadTexture(groupPath_pbr + "mahogany-floor/mahogany-floor_ao.png");
+		GLuint mahoganyFloor_AmbientOcclusionMap =		Texture::loadTexture(groupPath_pbr + "mahogany-floor/mahogany-floor_ao.png");*/
 
-		GLuint patchyCement_Albedo =					Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_albedo.png");
-		GLuint patchyCement_Roughness =					Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_roughness.png");
-		GLuint patchyCement_Metallic =					Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_metallic.png");
-		GLuint patchyCement_NormalMap =					Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_normal.png");
-		////GLuint patchyCement_HeightMap =					Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_height.png");
-		GLuint patchyCement_AmbientOcclusionMap =		Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_ao.png");
+		//GLuint patchyCement_Albedo =					Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_albedo.png");
+		//GLuint patchyCement_Roughness =					Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_roughness.png");
+		//GLuint patchyCement_Metallic =					Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_metallic.png");
+		//GLuint patchyCement_NormalMap =					Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_normal.png");
+		//////GLuint patchyCement_HeightMap =					Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_height.png");
+		//GLuint patchyCement_AmbientOcclusionMap =		Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_ao.png");
 
 		GLuint redBrick_Albedo =						Texture::loadTexture(groupPath_pbr + "red-bricks/red-bricks_albedo.png");
 		GLuint redBrick_Roughness =						Texture::loadTexture(groupPath_pbr + "red-bricks/red-bricks_roughness.png");
@@ -189,12 +202,12 @@ private:
 		GLuint redBrick_HeightMap =						Texture::loadTexture(groupPath_pbr + "red-bricks/red-bricks_height.png");
 		GLuint redBrick_AmbientOcclusionMap =			Texture::loadTexture(groupPath_pbr + "red-bricks/red-bricks_ao.png");
 
-		GLuint wornPaintedCement_Albedo =				Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_albedo.png");
-		GLuint wornPaintedCement_Roughness =			Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_roughness.png");
-		GLuint wornPaintedCement_Metallic =				Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_metallic.png");
-		GLuint wornPaintedCement_NormalMap =			Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_normal.png");
-		////GLuint wornPaintedCement_HeightMap =			Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_height.png");
-		GLuint wornPaintedCement_AmbientOcclusionMap =	Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_ao.png");
+		//GLuint wornPaintedCement_Albedo =				Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_albedo.png");
+		//GLuint wornPaintedCement_Roughness =			Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_roughness.png");
+		//GLuint wornPaintedCement_Metallic =				Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_metallic.png");
+		//GLuint wornPaintedCement_NormalMap =			Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_normal.png");
+		//////GLuint wornPaintedCement_HeightMap =			Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_height.png");
+		//GLuint wornPaintedCement_AmbientOcclusionMap =	Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_ao.png");
 
 		GLuint grayGraniteFlecks_Albedo =				Texture::loadTexture(groupPath_pbr + "gray-granite-flecks/gray-granite-flecks_albedo.png");
 		GLuint grayGraniteFlecks_Roughness =			Texture::loadTexture(groupPath_pbr + "gray-granite-flecks/gray-granite-flecks_roughness.png");

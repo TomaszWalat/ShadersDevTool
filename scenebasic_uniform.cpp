@@ -109,6 +109,8 @@ void SceneBasic_Uniform::initScene()
 
     compile();
 
+	glClearColor(0.3, 0.75, 0.68, 1.0);
+	//glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glEnable(GL_DEPTH_TEST);
 	
 	// Setting object textures
@@ -308,8 +310,11 @@ void SceneBasic_Uniform::initScene()
 
 	}
 
-	setupFBO();
+	setupFBOs();
 	setupFrameQuad();
+	setupSamplers();
+	computeWeights();
+	setWeights();
 }
 
 
@@ -341,36 +346,82 @@ void SceneBasic_Uniform::compile()
 	progs.at(currentProg)->use();
 }
 
-void SceneBasic_Uniform::setupFBO()
+void SceneBasic_Uniform::setupFBOs()
 {
-	GLuint depthBuffer;
+	// --- HDR FBO setup --- //
 
-	// Create and bind FBO
+	// Create and bind FBO (HDR)
 	glGenFramebuffers(1, &bufferTextures.hdr_FBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, bufferTextures.hdr_FBO);
 
 	// Depth buffer
+	GLuint depthBuffer;
 	glGenRenderbuffers(1, &depthBuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
 
-	// HDR colour buffer
+	// HDR colour texture
 	glActiveTexture(GL_TEXTURE8);
 	glGenTextures(1, &bufferTextures.hdr_Colour);
 	glBindTexture(GL_TEXTURE_2D, bufferTextures.hdr_Colour);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA16F, width, height);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, width, height);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+
+
+	//GLenum drawBuffers[] = { GL_NONE, GL_COLOR_ATTACHMENT0 };
+	////GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+	//glDrawBuffers(2, drawBuffers);
+
+	// --- Blur FBO setup --- //
+
+	//// Create and bind FBO (Bright-pass)
+	//glGenFramebuffers(1, &bufferTextures.blur_FBO);
+	//glBindFramebuffer(GL_FRAMEBUFFER, bufferTextures.blur_FBO);
+
+	// Calculate size of blur textures
+	bloomBufferWidth = width / 4;
+	bloomBufferHeight = height / 4;
+
+	// Blur texture one
+	glActiveTexture(GL_TEXTURE9);
+	glGenTextures(1, &bufferTextures.blur_One);
+	glBindTexture(GL_TEXTURE_2D, bufferTextures.blur_One);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, width, height);
+	//glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, bloomBufferWidth, bloomBufferHeight);
+
+	// Blur texture two
+	glActiveTexture(GL_TEXTURE10);
+	glGenTextures(1, &bufferTextures.blur_Two);
+	glBindTexture(GL_TEXTURE_2D, bufferTextures.blur_Two);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, width, height);
+	//glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, bloomBufferWidth, bloomBufferHeight);
 
 	// Attach depth & hdr images to frame buffer
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bufferTextures.hdr_Colour, 0);
+	//// Bind blur texture one to the FBO
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bufferTextures.blur_One, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, bufferTextures.blur_Two, 0);
+	
+	//GLenum drawBuffers2[] = { GL_NONE, GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	//GLenum drawBuffers2[] = { GL_NONE, GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	//GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+	GLenum drawBuffers2[] = { GL_NONE, GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	glDrawBuffers(4, drawBuffers2);
+	//glDrawBuffers(4, drawBuffers);
 
-	GLenum drawBuffers[] = { GL_NONE, GL_COLOR_ATTACHMENT0 };
-	glDrawBuffers(2, drawBuffers);
+	/*if(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
+	{
+		glClearColor(0.75f, 0.3f, 0.68f, 1.0f);
+	}*/
 
+	// Revert to default framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 }
+
 
 void SceneBasic_Uniform::setupFrameQuad()
 {
@@ -418,6 +469,92 @@ void SceneBasic_Uniform::setupFrameQuad()
 
 	glBindVertexArray(0); // Set back to default 
 
+}
+
+
+// Sets up two sampler objects for linear and nearest filtering
+void SceneBasic_Uniform::setupSamplers()
+{
+	GLuint samplers[2];
+	glGenSamplers(2, samplers);
+
+	bufferTextures.linear_Sampler = samplers[0];
+	bufferTextures.nearest_Sampler = samplers[1];
+
+	GLfloat border[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+	// Set up the nearest sampler
+	glSamplerParameteri(bufferTextures.nearest_Sampler, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glSamplerParameteri(bufferTextures.nearest_Sampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glSamplerParameteri(bufferTextures.nearest_Sampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glSamplerParameteri(bufferTextures.nearest_Sampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glSamplerParameterfv(bufferTextures.nearest_Sampler, GL_TEXTURE_BORDER_COLOR, border);
+
+	// Set up the linear sampler
+	glSamplerParameteri(bufferTextures.linear_Sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glSamplerParameteri(bufferTextures.linear_Sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glSamplerParameteri(bufferTextures.linear_Sampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glSamplerParameteri(bufferTextures.linear_Sampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glSamplerParameterfv(bufferTextures.linear_Sampler, GL_TEXTURE_BORDER_COLOR, border);
+
+	//// We want nearest sampling except for the last pass.
+	//glBindSampler(0, bufferTextures.linear_Sampler);
+	//glBindSampler(1, bufferTextures.nearest_Sampler);
+	//glBindSampler(2, bufferTextures.nearest_Sampler);
+	//glBindSampler(3, bufferTextures.nearest_Sampler);
+	//glBindSampler(4, bufferTextures.nearest_Sampler);
+	//glBindSampler(5, bufferTextures.nearest_Sampler);
+	//glBindSampler(6, bufferTextures.nearest_Sampler);
+	//glBindSampler(7, bufferTextures.nearest_Sampler);
+	//glBindSampler(8, bufferTextures.nearest_Sampler);
+	//glBindSampler(9, bufferTextures.nearest_Sampler);
+	//glBindSampler(10, bufferTextures.nearest_Sampler);
+
+}
+
+// Computes and sums the weights
+void SceneBasic_Uniform::computeWeights()
+{
+	weights[0] = gauss(0, sigma2);
+
+	sum = weights[0];
+
+	for (int i = 1; i < 10; i++) 
+	{
+		weights[i] = gauss(i, sigma2);
+		sum += 2 * weights[i];
+	}
+}
+
+// Gaussian blur function
+float SceneBasic_Uniform::gauss(float x, float sigma2)
+{
+	double coeff = 1.0 / (glm::two_pi<double>() * sigma2);
+
+	double expon = -(x * x) / (2.0 * sigma2);
+
+	return (float)(coeff * exp(expon));
+}
+
+
+void SceneBasic_Uniform::computeLogAvgLuminance()
+{
+	int size = width * height;
+
+	std::vector<GLfloat> texData(size * 3);
+
+	glActiveTexture(GL_TEXTURE8);
+	glBindTexture(GL_TEXTURE_2D, bufferTextures.hdr_Colour);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, texData.data());
+
+	float sum = 0.0f;
+	for (int i = 0; i < size; i++) 
+	{
+		float lum = glm::dot(vec3(texData[i * 3 + 0], texData[i * 3 + 1],	texData[i * 3 + 2]), vec3(0.2126f, 0.7152f, 0.0722f));
+		sum += logf(lum + 0.00001f);
+	}
+
+	progs.at(currentProg)->setUniform("AverageLumen", expf(sum / size));
 }
 
 
@@ -470,7 +607,9 @@ void SceneBasic_Uniform::setMeshUniforms(TriangleMesh* mesh)
 	progs.at(currentProg)->setUniform("material.metallic", mesh->material.metallic);
 
 
-	// Swap out texture bindings
+
+	//// Swap out texture bindings
+	//glBindFramebuffer(GL_FRAMEBUFFER, bufferTextures.hdr_FBO);
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, mesh->material.albedoTex);
@@ -508,8 +647,10 @@ void SceneBasic_Uniform::setLights()
 
 	progs.at(currentProg)->setUniform("gammaCorrection", gammaCorrection);
 	progs.at(currentProg)->setUniform("doHDRToneMapping", doHDRToneMapping);
+	progs.at(currentProg)->setUniform("doBloom", doBloom);
 	progs.at(currentProg)->setUniform("skyboxBrightness", skyboxBrightness);
 	progs.at(currentProg)->setUniform("Exposure", hdrExposure);
+	progs.at(currentProg)->setUniform("LuminanceThreshold", luminanceThreshold);
 
 	for(int i = 0; i < lights.size(); i++)
 	{
@@ -546,40 +687,155 @@ void SceneBasic_Uniform::setLights()
 }
 
 
+void SceneBasic_Uniform::setWeights()
+{
+	
+	// Normalize the weights
+	for (int i = 0; i < 10; i++) 
+	{
+		std::stringstream uniName;
+		uniName << "Weight[" << i << "]";
 
+		float val = weights[i] / sum;
+
+		progs.at(currentProg)->setUniform((uniName.str()).c_str(), val);
+	}
+}
+
+
+// Draw scene to HDR texture
 void SceneBasic_Uniform::drawPassOne()
 {
 	progs.at(currentProg)->setUniform("PassNo", 1);
-
-	// Set clear colour and viewport size
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-	glViewport(0, 0, width, height);
-
+	setWeights();
 	// Bind HDR frame buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, bufferTextures.hdr_FBO);
+
+	// Set viewport size
+	glViewport(0, 0, width, height);
 
 	// Prepare for rendering to HDR frame buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 
+	/*
+	glActiveTexture(GL_TEXTURE8);
+	glBindTexture(GL_TEXTURE_2D, bufferTextures.hdr_Colour);*/
+
+
+	// Set framebuffer colour data to hdr colour texture
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bufferTextures.hdr_Colour, 0);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bufferTextures.blur_One, 0);
+
+	GLenum drawBuffers2[] = { GL_NONE, GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_NONE };
+	glDrawBuffers(4, drawBuffers2);
+
 	//view = glm::lookAt(vec3(2.0f, 0.0f, 14.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 	//projection = glm::perspective(glm::radians(60.0f), (float)width / height, 0.3f, 100.0f);
 
 	//// Draw scene to HDR frame buffer
-	//drawScene();
-
-}
-
-void SceneBasic_Uniform::drawPassTwo()
-{
-	progs.at(currentProg)->setUniform("PassNo", 2);
-
+	drawScene();
+	
+	//glClear(GL_COLOR_BUFFER_BIT);
+	//glDisable(GL_DEPTH_TEST);
+	
 	// Revert to default framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+// Extract bright data from HDR texture, copy it to blur texture one
+void SceneBasic_Uniform::drawPassTwo()
+{
+	progs.at(currentProg)->setUniform("PassNo", 2);
+	
+	// Bind HDR frame buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, bufferTextures.hdr_FBO);
+
+	//glBindBuffer(GL_FRAMEBUFFER, bufferTextures.blur_FBO);
+	//glBindBuffer(GL_FRAMEBUFFER, bufferTextures.hdr_FBO);
+
+
+	////// Prepare for rendering
+	glViewport(0, 0, bloomBufferWidth, bloomBufferHeight);
+	// Prepare for rendering to HDR frame buffer
+	//glClear(GL_COLOR_BUFFER_BIT);
+	//glDisable(GL_DEPTH_TEST);
+	//glClear(GL_COLOR_BUFFER_BIT);
+
+	// Set framebuffer colour data to blur one texture
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bufferTextures.blur_One, 0);
+
+	glActiveTexture(GL_TEXTURE8);
+	glBindTexture(GL_TEXTURE_2D, bufferTextures.hdr_Colour);
+
+	GLenum drawBuffers2[] = { GL_NONE, GL_NONE, GL_COLOR_ATTACHMENT1 };//, GL_COLOR_ATTACHMENT2 };
+	glDrawBuffers(3, drawBuffers2);
+
+	
+
+	/*
+	mat4 m = mat4(1.0f);
+
+	progs.at(currentProg)->setUniform("NormalMatrix", m);
+	progs.at(currentProg)->setUniform("ObjectModelMatrix", m);
+	progs.at(currentProg)->setUniform("ModelMatrix", m);
+	progs.at(currentProg)->setUniform("ModelViewMatrix", m);
+	progs.at(currentProg)->setUniform("ViewMatrix", m);
+	progs.at(currentProg)->setUniform("ViewProjectionMatrix", m);
+	progs.at(currentProg)->setUniform("MVP", m);*/
+	setWeights();
+
+	// Render to the full screen quad
+	glBindVertexArray(bufferTextures.frame_Quad);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
+	//// Revert to default framebuffer
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glDisable(GL_DEPTH_TEST);
+
+	//mat4 m = mat4(1.0f);
+
+	//progs.at(currentProg)->setUniform("NormalMatrix", m);
+	//progs.at(currentProg)->setUniform("ObjectModelMatrix", m);
+	//progs.at(currentProg)->setUniform("ModelMatrix", m);
+	//progs.at(currentProg)->setUniform("ModelViewMatrix", m);
+	//progs.at(currentProg)->setUniform("ViewMatrix", m);
+	//progs.at(currentProg)->setUniform("ViewProjectionMatrix", m);
+	//progs.at(currentProg)->setUniform("MVP", m);
+	//
+	//// Render the quad
+	//glBindVertexArray(bufferTextures.frame_Quad);
+	//glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	
+	// Revert to default framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+// Blur pass one - read from blur texture one, blur it, write it to blur texture two
+void SceneBasic_Uniform::drawPassThree()
+{
+	progs.at(currentProg)->setUniform("PassNo", 3);
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, bufferTextures.hdr_FBO);
+	// Prepare for rendering to HDR frame buffer
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glDisable(GL_DEPTH_TEST);
 
+	//glBindBuffer(GL_FRAMEBUFFER, bufferTextures.blur_FBO);
+	//glBindBuffer(GL_FRAMEBUFFER, bufferTextures.hdr_FBO);
+
+	
+	// Set framebuffer colour data to hdr colour texture
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bufferTextures.hdr_Colour, 0);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bufferTextures.blur_Two, 0);
+
+	
+	
 	mat4 m = mat4(1.0f);
 
 	progs.at(currentProg)->setUniform("NormalMatrix", m);
@@ -589,30 +845,114 @@ void SceneBasic_Uniform::drawPassTwo()
 	progs.at(currentProg)->setUniform("ViewMatrix", m);
 	progs.at(currentProg)->setUniform("ViewProjectionMatrix", m);
 	progs.at(currentProg)->setUniform("MVP", m);
+	setWeights();
+
+	glActiveTexture(GL_TEXTURE9);
+	glBindTexture(GL_TEXTURE_2D, bufferTextures.blur_One);
+
+	GLenum drawBuffers2[] = { GL_NONE, GL_NONE, GL_NONE, GL_COLOR_ATTACHMENT2 };
+	glDrawBuffers(4, drawBuffers2);
+
+	//// Set framebuffer colour data to blur two texture
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bufferTextures.blur_Two, 0);
 	
-	// Render the quad
+	
+	// Render to the full screen quad
 	glBindVertexArray(bufferTextures.frame_Quad);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+	
+	// Revert to default framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void SceneBasic_Uniform::computeAvgLuminance()
+// Blur pass two - read from blur texture two, blur it, write it to blur texture one
+void SceneBasic_Uniform::drawPassFour()
 {
-	int size = width * height;
+	progs.at(currentProg)->setUniform("PassNo", 4);
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, bufferTextures.hdr_FBO);
+	//GLfloat clearColour[] = {0.2f, 0.2f, 0.2f, 1.0f};
+	//glClearBufferfv(GL_COLOR, 2, clearColour);
+	// Prepare for rendering to HDR frame buffer
+	//glClear(GL_COLOR_BUFFER_BIT);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	//glBindBuffer(GL_FRAMEBUFFER, bufferTextures.blur_FBO);
+	//glBindBuffer(GL_FRAMEBUFFER, bufferTextures.hdr_FBO);
 
-	std::vector<GLfloat> texData(size * 3);
+	// Set framebuffer colour data to blur one texture
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bufferTextures.blur_One, 0);
+	
+	mat4 m = mat4(1.0f);
 
-	glActiveTexture(GL_TEXTURE0);
+	progs.at(currentProg)->setUniform("NormalMatrix", m);
+	progs.at(currentProg)->setUniform("ObjectModelMatrix", m);
+	progs.at(currentProg)->setUniform("ModelMatrix", m);
+	progs.at(currentProg)->setUniform("ModelViewMatrix", m);
+	progs.at(currentProg)->setUniform("ViewMatrix", m);
+	progs.at(currentProg)->setUniform("ViewProjectionMatrix", m);
+	progs.at(currentProg)->setUniform("MVP", m);
+	setWeights();
+
+	glActiveTexture(GL_TEXTURE10);
+	glBindTexture(GL_TEXTURE_2D, bufferTextures.blur_Two);
+	
+	GLenum drawBuffers2[] = { GL_NONE, GL_NONE, GL_COLOR_ATTACHMENT1, GL_NONE };
+	glDrawBuffers(4, drawBuffers2);
+
+	// Render to the full screen quad
+	glBindVertexArray(bufferTextures.frame_Quad);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	//glClear(GL_COLOR_BUFFER_BIT);
+
+	// Revert to default framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+// Read from blur texture one and HDR texture, tone map the HDR and mix with blur
+void SceneBasic_Uniform::drawPassFive()
+{
+	progs.at(currentProg)->setUniform("PassNo", 5);
+	
+	// Bind default framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glEnable(GL_DEPTH_TEST);
+
+	glViewport(0, 0, width, height);
+
+	//GLenum drawBuffers2[] = { GL_NONE, GL_NONE, GL_COLOR_ATTACHMENT1 };//, GL_COLOR_ATTACHMENT2 };
+	//glDrawBuffers(3, drawBuffers2);
+
+	// Prepare for rendering
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	mat4 m = mat4(1.0f);
+
+	progs.at(currentProg)->setUniform("NormalMatrix", m);
+	progs.at(currentProg)->setUniform("ObjectModelMatrix", m);
+	progs.at(currentProg)->setUniform("ModelMatrix", m);
+	progs.at(currentProg)->setUniform("ModelViewMatrix", m);
+	progs.at(currentProg)->setUniform("ViewMatrix", m);
+	progs.at(currentProg)->setUniform("ViewProjectionMatrix", m);
+	progs.at(currentProg)->setUniform("MVP", m);
+
+	
+	glActiveTexture(GL_TEXTURE8);
 	glBindTexture(GL_TEXTURE_2D, bufferTextures.hdr_Colour);
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, texData.data());
+	glActiveTexture(GL_TEXTURE9);
+	glBindTexture(GL_TEXTURE_2D, bufferTextures.blur_One);
 
-	float sum = 0.0f;
-	for (int i = 0; i < size; i++) 
-	{
-		float lum = glm::dot(vec3(texData[i * 3 + 0], texData[i * 3 + 1],	texData[i * 3 + 2]), vec3(0.2126f, 0.7152f, 0.0722f));
-		sum += logf(lum + 0.00001f);
-	}
 
-	progs.at(currentProg)->setUniform("AverageLumen", expf(sum / size));
+	// Read from blur texture one, using linear sampling for extra blur
+	glBindSampler(9, bufferTextures.linear_Sampler);
+	
+	// Render to the full screen quad
+	glBindVertexArray(bufferTextures.frame_Quad);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	// Revert to nearest sampling
+	glBindSampler(9, bufferTextures.nearest_Sampler);
 }
 
 
@@ -763,9 +1103,13 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::Spacing();
 		ImGui::Checkbox("HDR Tone Mapping", &doHDRToneMapping);
 		ImGui::Spacing();
+		ImGui::Checkbox("Bloom effect", &doBloom);
+		ImGui::Spacing();
 		ImGui::SliderFloat("Skybox Brightness", &skyboxBrightness, 0.01f, 100.0f);
 		ImGui::Spacing();
 		ImGui::SliderFloat("HDR Exposure", &hdrExposure, 0.01f, 5.0f);
+		ImGui::Separator();
+		ImGui::SliderFloat("Bloom Threshold", &luminanceThreshold, 0.01f, 5.0f);
 		ImGui::Separator();
 		ImGui::Spacing();
 
@@ -832,7 +1176,7 @@ void SceneBasic_Uniform::update( float t )
 
 void SceneBasic_Uniform::render()
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	drawGUI();
 
@@ -840,17 +1184,23 @@ void SceneBasic_Uniform::render()
 	{
 		drawPassOne();
 
-		drawScene();
+		//drawScene();
 
-		computeAvgLuminance();
+		computeLogAvgLuminance();
 
-		drawPassTwo();
+		//drawPassTwo();
+
+		drawPassThree();
+
+		drawPassFour();
+
+		drawPassFive();
 	}
 	else
 	{
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		drawScene();
 	}

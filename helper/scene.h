@@ -22,7 +22,7 @@ public:
 
 	std::unique_ptr<Camera> cam;
 
-	Scene() : m_animate(true), width(800), height(600) { }
+	Scene() : m_animate(true), width(1600), height(900) { }
 	virtual ~Scene() {}
 
 	void setDimensions( int w, int h ) {

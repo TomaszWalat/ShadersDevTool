@@ -5,7 +5,9 @@ in vec3 Normal;
 in vec2 TexCoord;
 
 layout (location = 0) out vec4 FragColor;
-layout (location = 1) out vec3 HdrColor;
+layout (location = 1) out vec4 HdrColor;
+layout (location = 2) out vec4 BlurOneColor;
+layout (location = 3) out vec4 BlurTwoColor;
 
 
 layout (binding = 0) uniform samplerCube Skybox;
@@ -38,6 +40,10 @@ uniform mat3 xyz2rgb = mat3(3.2404542, -0.9692660, 0.0556434,
 uniform float Exposure = 0.35;
 uniform float White = 0.928;
 
+uniform float LuminanceThreshold = 1.7; // Luminance threshold
+uniform float PixelOffset[10] = float[](0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
+uniform float Weight[10];
+
 uniform float AlphaDiscard;
 uniform mat4 ViewMatrix;
 uniform mat4 ModelViewMatrix;
@@ -45,6 +51,7 @@ uniform mat4 SkyboxRotationMatrix;
 
 uniform float gammaCorrection;
 uniform bool doHDRToneMapping;
+uniform bool doBloom;
 uniform float skyboxBrightness;
 
 const float Pi = 3.14159265358979323846;
@@ -232,10 +239,15 @@ vec3 computeMicrofacetModel(in int lightNo, in vec3 F0, in vec3 n, in vec3 v) {
 ////    return (((fd * material.colour.rgb) / Pi) + fs) * radiance * dot(n, -s);
 }
 
-// Computes shading and stores result in high-res framebuffer
+float luminance(vec3 colour) {
+    
+    return 0.2126 * colour.r + 0.7152 * colour.g + 0.0722 * colour.b;
+}
+
+// Computes shading and stores result in high-res framebuffer (writing to HdrTex)
 void passOne() {
     
-    HdrColor = vec3(0.0);
+//    HdrColor = vec4(0.0);
 
     vec3 Lo = vec3(0.0);
 
@@ -247,18 +259,18 @@ void passOne() {
     material.metallic = texture(MetallicTex, TexCoord).r;
     material.roughness = texture(RoughnessTex, TexCoord).r;
     material.ao = texture(AmbientOcclusionMap, TexCoord).r;
-    vec4 alphaMap = texture(AlphaTex, TexCoord);
+//    vec4 alphaMap = texture(AlphaTex, TexCoord);
     
     
     // view vector
     vec3 v = normalize(-Position).xyz; 
 
-
-    // Discard fragment based on alpah map
-    if(alphaMap.a < AlphaDiscard)
-    {
-        discard;
-    }
+//
+//    // Discard fragment based on alpah map
+//    if(alphaMap.a < AlphaDiscard)
+//    {
+//        discard;
+//    }
     vec3 n = Normal;
 //    // Invert face normals if pointing away from camera
 //    if(!gl_FrontFacing)
@@ -320,14 +332,133 @@ void passOne() {
 //    vec3 colour = (vec3(0.03) * material.albedo.rgb * material.ao) + Lo;
 ////    vec3 colour = Lo;
 
-    HdrColor = colour;
+    float pixelLumen = luminance(colour.rgb);
+
+    if(pixelLumen > LuminanceThreshold) {
+//    if(luminance(colour.rgb) > LuminanceThreshold) {
+
+    //        HdrColor = vec4(0.75, 0.3, 0.68, 1.0);
+//        BlurOneColor = vec4(0.75, 0.3, 0.68, 1.0);
+        BlurOneColor = vec4(colour, 1.0);
+    }
+    else {
+
+            BlurOneColor = vec4(0.0);
+    //        BlurOneColor = vec4(0.75, 0.3, 0.68, 1.0);
+    //        HdrColor = vec4(0.75, 0.68, 0.3, 1.0);
+//        BlurOneColor = vec4(0.75, 0.68, 0.3, 1.0);
+    ////        FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+    }
+
+    HdrColor = vec4(colour, 1.0);
+//    HdrColor = vec4(colour, pixelLumen);
+//    FragColor = vec4(colour, 1.0);
 }
 
-// Calculate HDR tone mapping
+//// Calculate HDR tone mapping
+//void passTwo() {
+//    
+//    // Retrive the colour from high-res texture
+//    vec4 colour = texture(HdrTex, TexCoord);
+//
+//    // Convert to XYZ - LDR [0.0, 1.0] range to HDR [0.0, float max value] range
+//    vec3 xyzColour = rgb2xyz * vec3(colour);
+//
+//    // Convert to xyY
+//    float xyzSum = xyzColour.x + xyzColour.y + xyzColour.z;
+//    vec3 xyYColour = vec3(xyzColour.x / xyzSum, xyzColour.y / xyzSum, xyzColour.y);
+//
+//    // Tone map the luminance - use xyYColour.z or xyzColour.y (they're the same value)
+//    float L = (Exposure * xyYColour.z) / AverageLumen;
+//    L = (L * (1 + L / (White * White))) / (1 + L);
+//
+//    // Convert back to XYZ using toned luminance
+//    xyzColour.x = (L * xyYColour.x) / xyYColour.y;
+//    xyzColour.y = L;
+//    xyzColour.z = (L * (1 - xyYColour.x - xyYColour.y)) / xyYColour.y;
+//
+//
+//    if(doHDRToneMapping) {
+//        // Convert back to RGB
+//        colour = vec4(xyz2rgb * xyzColour, 1.0);
+//    }
+//
+//    // Gamma correction
+//    colour = pow(colour, vec4(1.0/gammaCorrection));
+//
+//    FragColor = colour;
+//}
+
+// Bright-pass filter (read from HdrTex, writing to BlurTex1)
 void passTwo() {
+
+    vec4 colour = texture(HdrTex, TexCoord);
+
+//    if(colour.a > LuminanceThreshold) {
+    if(luminance(colour.rgb) > LuminanceThreshold) {
+
+//        HdrColor = vec4(0.75, 0.3, 0.68, 1.0);
+        BlurOneColor = vec4(0.75, 0.3, 0.68, 1.0);
+    }
+    else {
+
+//        BlurOneColor = vec4(0.75, 0.3, 0.68, 1.0);
+//        HdrColor = vec4(0.75, 0.68, 0.3, 1.0);
+        BlurOneColor = vec4(0.75, 0.68, 0.3, 1.0);
+////        FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+    }
+}
+
+// First blur pass (reading from BlurTex1, writing to BlurTex2)
+void passThree() {
     
+    float dy = 1.0 / (textureSize(BlurTex1, 0)).y;
+
+    vec4 sum = texture(BlurTex1, TexCoord) * Weight[0];
+
+    for(int i = 0; i < 10; i++) {
+        
+        sum += texture(BlurTex1, TexCoord + vec2(0.0, PixelOffset[i]) * dy) * Weight[i];
+
+        sum += texture(BlurTex1, TexCoord - vec2(0.0, PixelOffset[i]) * dy) * Weight[i];
+    }
+//
+//    BlurTwoColor = sum + vec4(0.75, 0.68, 0.3, 1.0);
+//    BlurTwoColor = vec4(0.75, 0.68, 0.3, 1.0);
+//    BlurTwoColor = sum;
+    BlurTwoColor = sum;// * vec4(0.75, 0.3, 0.68, 1.0);
+////    FragColor = sum;
+//        HdrColor = sum.rgb;
+}
+
+// Second blur pass (reading from BlurTex2, writing to BlurTex1)
+void passFour() {
+
+    float dx = 1.0 / (textureSize(BlurTex2, 0)).x;
+
+    vec4 sum = texture(BlurTex2, TexCoord) * Weight[0];
+
+    for(int i = 0; i < 10; i++) {
+        
+        sum += texture(BlurTex2, TexCoord + vec2(PixelOffset[i], 0.0) * dx) * Weight[i];
+
+        sum += texture(BlurTex2, TexCoord - vec2(PixelOffset[i], 0.0) * dx) * Weight[i];
+    }
+//
+    BlurOneColor = sum;
+////    FragColor = sum;
+//        HdrColor = sum.rgb;
+}
+
+// Apply HDR tone mapping to HdrTex, then combine with blured bright-pass filter
+// (reading from HdrTex & BlurTex1, writing to default buffer)
+void passFive() {
+
+    // --- Tone mapping --- //
+
     // Retrive the colour from high-res texture
     vec4 colour = texture(HdrTex, TexCoord);
+
 
     // Convert to XYZ - LDR [0.0, 1.0] range to HDR [0.0, float max value] range
     vec3 xyzColour = rgb2xyz * vec3(colour);
@@ -345,16 +476,26 @@ void passTwo() {
     xyzColour.y = L;
     xyzColour.z = (L * (1 - xyYColour.x - xyYColour.y)) / xyYColour.y;
 
-
     if(doHDRToneMapping) {
         // Convert back to RGB
         colour = vec4(xyz2rgb * xyzColour, 1.0);
     }
 
+
+    // --- Combine HDR with blurred texture --- //
+    if(doBloom)
+    {
+        vec4 blurredTex = texture(BlurTex1, TexCoord); // accessing with linear filtering gives us extra blur
+        colour += blurredTex;
+    }
+
     // Gamma correction
     colour = pow(colour, vec4(1.0/gammaCorrection));
 
+//    FragColor = texture(BlurTex1, TexCoord);
     FragColor = colour;
+//    FragColor = vec4(0.75, 0.3, 0.68, 1.0);
+
 }
 
 void main() {
@@ -364,5 +505,14 @@ void main() {
     }
     else if (PassNo == 2) {
         passTwo();
+    }
+    else if (PassNo == 3) {
+        passThree();
+    }
+    else if (PassNo == 4) {
+        passFour();
+    }
+    else if (PassNo == 5) {
+        passFive();
     }
 }
