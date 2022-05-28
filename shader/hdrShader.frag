@@ -4,15 +4,21 @@ in vec4 Position;
 in vec3 Normal;
 in vec2 TexCoord;
 
+
+// Output buffers (textures)
 layout (location = 0) out vec4 FragColor;
 layout (location = 1) out vec4 HdrColor;
 layout (location = 2) out vec4 BlurOneColor;
 layout (location = 3) out vec4 BlurTwoColor;
 
 
-layout (binding = 0) uniform samplerCube Skybox;
-layout (binding = 7) uniform samplerCube EnvironmentMap;
+// --- Textures (for reading) --- //
 
+// Skybox textures
+layout (binding = 0) uniform samplerCube Skybox;
+layout (binding = 7) uniform samplerCube EnvironmentMap; // Blury - gives a sense of lighting strength
+
+// Object material textures
 layout (binding = 1) uniform sampler2D AlbedoTex;
 layout (binding = 2) uniform sampler2D RoughnessTex;
 layout (binding = 3) uniform sampler2D MetallicTex;
@@ -20,13 +26,18 @@ layout (binding = 4) uniform sampler2D NormalMap;
 layout (binding = 5) uniform sampler2D AmbientOcclusionMap;
 layout (binding = 6) uniform sampler2D AlphaTex;
 
+// HDR and Bloom textures
 layout (binding = 8) uniform sampler2D HdrTex;
 layout (binding = 9) uniform sampler2D BlurTex1;
 layout (binding = 10) uniform sampler2D BlurTex2;
 
-uniform int PassNo; // Pass number
-uniform float AverageLumen;
 
+// --- Uniforms --- //
+
+// Render pass number
+uniform int PassNo; 
+
+// HDR tone mapping conversion matrices
 // XYZ/RGB conversion matrices from:
 // http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
 uniform mat3 rgb2xyz = mat3(0.4124564, 0.2126729, 0.0193339,
@@ -37,27 +48,34 @@ uniform mat3 xyz2rgb = mat3(3.2404542, -0.9692660, 0.0556434,
                             -1.5371385, 1.8760108, -0.2040259,
                             -0.4985314, 0.0415560, 1.0572252 );
 
-uniform float Exposure = 0.35;
-uniform float White = 0.928;
+const float Pi = 3.14159265358979323846; // For PBR light calculations
 
-uniform float LuminanceThreshold = 1.7; // Luminance threshold
+// HDR settings
+uniform bool DoHDRToneMapping;
+uniform float White = 0.928; // For balancing the colour of HDR lighting
+uniform float AverageLumen; // Scene average brightness
+uniform float Exposure;
+
+// Bloom settings
+uniform bool DoBloom;
+uniform float LuminanceThreshold;
+uniform int BloomOneStrength;
+uniform int BloomTwoStrength;
 uniform float PixelOffset[10] = float[](0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
 uniform float Weight[10];
 
-uniform float AlphaDiscard;
+uniform float GammaCorrection;
+
+// Camera matrices
 uniform mat4 ViewMatrix;
 uniform mat4 ModelViewMatrix;
+
 uniform mat4 SkyboxRotationMatrix;
 
-uniform float gammaCorrection;
-uniform bool doHDRToneMapping;
-uniform bool doBloom;
-uniform int bloomAxisBlur;
-uniform int bloomDiagonalBlur;
-//uniform int bloomMipmapLevel;
-uniform float skyboxBrightness;
+uniform float AlphaDiscard;
 
-const float Pi = 3.14159265358979323846;
+
+// --- Structs --- //
 
 uniform struct LightInfo {
 
@@ -74,18 +92,18 @@ uniform struct LightInfo {
 	vec3 direction;
 	float cutoffInner; // Phi
 	float cutoffOuter; // Gamma
+
 } lights[4];
 
 struct MaterialInfo {
 
-	vec4 albedo;
-
+	vec4 albedo; // Colour
 	float roughness;
     float metallic;
-
-    float ao;
+    float ao; // Ambient Occlussion
 
 } material;
+
 
 
 // using Trowbridge-Reitz GGX
@@ -95,12 +113,12 @@ float normalDistribution(in vec3 n, in vec3 h) {
     float a2 = material.roughness * material.roughness * material.roughness * material.roughness;
 
     float nDotH = max(dot(n, h), 0.0);
-//    float nDotH = dot(n, h);
 
     float d = (nDotH * nDotH) * (a2 - 1.0) + 1.0;
 
     return a2 / (Pi * (d * d));
 }
+
 
 // using Schlick approximation
 // models some light being blocked by microfacet overshadowing / blockage
@@ -111,6 +129,7 @@ float geomSchlickGGX(in float dotN) {
     return dotN / (dotN * (1.0 - k) + k);
 }
 
+
 // using Smith approximation
 // tells us how many of the surface microfacets are overshadowed by eachother, causing less reflectivity
 float geometryShadowing(in vec3 n, in vec3 v, in vec3 s) {
@@ -118,51 +137,31 @@ float geometryShadowing(in vec3 n, in vec3 v, in vec3 s) {
     float ggx1 = geomSchlickGGX(max(dot(n, v), 0.0)); // modelling light reflecting to eye being blocked
     float ggx2 = geomSchlickGGX(max(dot(n, -s), 0.0)); // modelling light from the source being blocked
     
-//    float ggx1 = geomSchlickGGX(dot(n, v)); // modelling light reflecting to eye being blocked
-//    float ggx2 = geomSchlickGGX(dot(n, -s)); // modelling light from the source being blocked
-
     return ggx1 * ggx2; // multiply to join models
 }
+
 
 // using Schlick approximation
 // tells us how much light is reflected (vs refracted)
 vec3 fresnelReflection(in vec3 h, in vec3 v, in vec3 F0) {
     
-//    return F0 + (1.0 - F0) * pow(clamp(1.0 - max(dot(h, v), 0.0), 0.0, 1.0), 5.0);
-//    return F0 + (1.0 - F0) * pow(1.0 - dot(h, v), 5.0);
-
     return F0 + (1.0 - F0) * pow(clamp(1.0 - max(dot(h, v), 0.0), 0.0, 1.0), 5.0);
-//    return F0 + (1.0 - F0) * pow(1.0 - dot(h, v), 5.0);
 }
 
-// Function from https://learnopengl.com/PBR/IBL/Diffuse-irradiance
-// 
-vec3 fresnelSchlickRoughness(in vec3 h, in vec3 v, in vec3 F0)
-{
-    return F0 + (max(vec3(1.0 - material.roughness), F0) - F0) * pow(clamp(1.0 - max(dot(h, v), 0.0), 0.0, 1.0), 5.0);
-}   
 
+// PBR light calculation
 vec3 computeMicrofacetModel(in int lightNo, in vec3 F0, in vec3 n, in vec3 v) {
 
-    
     // --- Prep calculations --- //
     vec4 lPosition = ModelViewMatrix * lights[lightNo].position; // If light position.w == 0, light is a directional light
 
     vec3 s = normalize((Position * lPosition.w) - lPosition).xyz; // Direction of light ray
-
-//    // skybox reflection vector
-//    vec3 r = normalize(mat3(transpose(ViewMatrix)) * reflect(normalize(Position).xyz, Normal)).xyz; // transpose to get the inverse of ViewMatrix
-//    vec3 reflection = texture(Skybox, r).rgb; // skybox reflection colour
-//    vec3 reflectionColour = (reflection * (1.0 - material.roughness) * material.metallic);// material.albedo.rgb );
-////    vec3 reflectionColour = mix((reflection * (1.0 - material.roughness)), material.albedo.rgb, (1.0 - material.metallic));
-////    vec3 reflectionColour = (reflection * material.albedo.rgb * (1.0 - material.roughness) * material.metallic);
 
    
     // --- Attenuation calculation --- //
     float lDistance = length(lPosition - Position) * lPosition.w; // Distance from light
 
     float attenuation = 1.0 / (1.0 + lights[lightNo].attenuationLinear * lDistance + lights[lightNo].attenuationQuadratic * (lDistance * lDistance));
-//    float attenuation = 1.0 / ((lDistance * lDistance) + 1.0);
 
 
     // --- Spotlight calculation --- //
@@ -182,8 +181,7 @@ vec3 computeMicrofacetModel(in int lightNo, in vec3 F0, in vec3 n, in vec3 v) {
         intensity = clamp((angle - lights[lightNo].cutoffOuter) / epsilon, 0.0, 1.0); // intensity = 1.0 inside the inner cone
     }
     
-//    vec3 radiance = (lights[lightNo].colour * intensity) * attenuation * lights[lightNo].brightness;
-    vec3 radiance = (lights[lightNo].colour * lights[lightNo].brightness * intensity) * attenuation;
+    vec3 radiance = lights[lightNo].colour * lights[lightNo].brightness * intensity * attenuation;
 
     // half vector
     vec3 h = normalize(v + -s);
@@ -194,87 +192,45 @@ vec3 computeMicrofacetModel(in int lightNo, in vec3 F0, in vec3 n, in vec3 v) {
     vec3  F = fresnelReflection(h, v, F0);
 
     // specular
-//    vec3 fs = (D * G * F) / (4 * dot(n, v) * dot(n, -s) + 0.0001);
-    vec3 fs = (D * G * F) / (4 * max(dot(n, v), 0.0) * max(dot(n, -s), 0.0) + 0.0001);
+    vec3 specular = (D * G * F) / (4 * max(dot(n, v), 0.0) * max(dot(n, -s), 0.0) + 0.0001);
 
-//    vec3 fs = (D * G * F) * 0.25;
-//    vec3 fs = (D * G * F) / (4 * max(dot(n, v), 0.0) * max(dot(n, -s), 0.0) + 0.0001);
-//    vec3 fs = (D * G * F) / (4 * dot(n, v) * dot(n, -s) + 0.0001);
-
-    // diffuse - should be called kd
-    vec3 fd = (vec3(1.0) - F) * (1.0 - material.metallic);
-//    vec3 fd = (vec3(1.0) - F) * (((1.0 - material.metallic) + 0.1) + (reflectionColour * (1.0 - material.roughness)));
-//    vec3 fd = ((vec3(1.0) - F) + reflectionColour * (1.0 - material.roughness)) * ((1.0 - material.metallic) + 0.1);// + (reflectionColour * (1.0 - material.roughness)));
-//    vec3 fd = mix(albedo, vec3(0.0), material.metallic);
-//    vec3 fd = mix(albedo, reflectionColour, material.metallic);
+    // refracted light
+    vec3 kd = (vec3(1.0) - F) * (1.0 - material.metallic);
     
-//    
-//    // skybox reflection vector
-//    vec3 r = normalize(mat3(transpose(ViewMatrix)) * reflect(normalize(Position).xyz, Normal)).xyz; // transpose to get the inverse of ViewMatrix
-//    vec3 reflection = texture(Skybox, r).rgb; // skybox reflection colour
-//    vec3 reflectionColour = (reflection * (1.0 - material.roughness) * material.metallic);// material.albedo.rgb );
-////    vec3 reflectionColour = mix((reflection * (1.0 - material.roughness)), material.albedo.rgb, (1.0 - material.metallic));
-////    vec3 reflectionColour = (reflection * material.albedo.rgb * (1.0 - material.roughness) * material.metallic);
-//
-//
-////    vec3 kd = 1.0 - clamp(fresnelSchlickRoughness(n, v, F0), 0.0, 1.0);
-//
-////    vec3 diffuse = (texture(EnvironmentMap, n).rgb) * (reflectionColour + material.albedo.rgb);
-//    vec3 diffuse = (texture(EnvironmentMap, n).rgb + reflectionColour) * material.albedo.rgb;
-////    vec3 diffuse = mix(material.albedo.rgb, reflectionColour, material.roughness) * texture(EnvironmentMap, n).rgb;
-//
-////    vec3 ambient = (kd * diffuse) * material.ao;
-//    vec3 ambient = ( diffuse) * material.ao;
-//
-////    ambient = vec3(0.2);
-//    
-//    return ((fd * material.albedo.rgb) / Pi + ambient + (diffuse) + fs) * radiance * max(dot(n, -s), 0.0) ;
-//
-////    return ((fd * albedo / Pi) + fs) * radiance * dot(n, -s);
-    return ((fd * material.albedo.rgb) / Pi + fs) * radiance * max(dot(n, -s), 0.0);
-////    return ((fd * material.albedo.rgb) / Pi + fs) * radiance * max(dot(n, -s), 0.0);
-////    return (((fd * material.albedo.rgb) / Pi) + fs + reflectionColour ) * radiance * max(dot(n, -s), 0.0);
-////    return (fd * albedo / Pi + fs) * radiance * max(dot(n, -s), 0.0);
-//
-////    return (fd + Pi * fs) * radiance * max(dot(n, -s), 0.0);
-////    return ((fd * albedo) + Pi * fs) * radiance * max(dot(n, -s), 0.0);
-////    return (((fd * vec3(1.0)) / Pi) + fs) * radiance * max(dot(n, -s), 0.0);
-////    return (((fd * material.colour.rgb) / Pi) + fs) * radiance * dot(n, -s);
+    return ((kd * material.albedo.rgb) / Pi + specular) * radiance * max(dot(n, -s), 0.0);
 }
 
 
+// Computes colour luminance
 float luminance(vec3 colour) {
     
     return 0.2126 * colour.r + 0.7152 * colour.g + 0.0722 * colour.b;
 }
 
+
+
 // Computes shading and stores result in high-res framebuffer (writing to HdrTex)
 void passOne() {
     
-//    HdrColor = vec4(0.0);
-
     vec3 Lo = vec3(0.0);
 
-    // Get texture pixel
-//    material.albedo = texture(AlbedoTex, TexCoord);
-    material.albedo = pow(texture(AlbedoTex, TexCoord), vec4(2.2));
-//    vec4 albedoTexColour = pow(texture(AlbedoTex, TexCoord), vec4(2.2));
-//    vec4 detailTexColour = texture(DetailTex, TexCoord); // Not proper detail, just secondary albedo
+    // Get textures' pixel data
+    material.albedo = pow(texture(AlbedoTex, TexCoord), vec4(2.2)); // Scale for HDR
     material.metallic = texture(MetallicTex, TexCoord).r;
     material.roughness = texture(RoughnessTex, TexCoord).r;
     material.ao = texture(AmbientOcclusionMap, TexCoord).r;
 //    vec4 alphaMap = texture(AlphaTex, TexCoord);
     
-    
     // view vector
     vec3 v = normalize(-Position).xyz; 
 
-//
+
 //    // Discard fragment based on alpah map
 //    if(alphaMap.a < AlphaDiscard)
 //    {
 //        discard;
 //    }
+
     vec3 n = Normal;
 //    // Invert face normals if pointing away from camera
 //    if(!gl_FrontFacing)
@@ -282,12 +238,6 @@ void passOne() {
 //        n = -Normal;
 //    }
 
-//    // Mix albedo and detail textures
-//    vec3 albedoDetail = normalize(mix(albedoTexColour.rgb, detailTexColour.rgb, detailTexColour.a));
-
-    // Mix texture with base model colour (set colour alpha to 0 to discard it)
-//    vec3 texColour = mix(albedoTexColour.rgb, material.colour.rgb, material.colour.a);
-//    vec3 texColour = albedoTexColour.rgb;
 
     // Calculate surface base reflectivity
     vec3 F0 = vec3(0.04);
@@ -300,251 +250,190 @@ void passOne() {
         Lo += computeMicrofacetModel(i, F0, n, v);
     }
 
-    
     // skybox reflection vector
     vec3 rView = transpose(mat3(SkyboxRotationMatrix)) * v;
     vec3 rNormal = transpose(mat3(SkyboxRotationMatrix)) * Normal;
+
     vec3 r = reflect(-rView, rNormal); // transpose to get the inverse of ViewMatrix
     vec3 reflection = texture(Skybox, r).rgb; // skybox reflection colour
-//    
-//    // skybox reflection vector
-//    vec3 r = normalize(mat3(transpose(SkyboxRotationMatrix)) * reflect(normalize(Position).xyz, Normal)).xyz; // transpose to get the inverse of ViewMatrix
-//    vec3 reflection = texture(Skybox, r).rgb; // skybox reflection colour
-    vec3 reflectionColour = (reflection * (1.0 - material.roughness) * material.metallic);// material.albedo.rgb );
-//    vec3 reflectionColour = mix((reflection * (1.0 - material.roughness)), material.albedo.rgb, (1.0 - material.metallic));
-//    vec3 reflectionColour = (reflection * material.albedo.rgb * (1.0 - material.roughness) * material.metallic);
 
+    vec3 reflectionColour = (reflection * (1.0 - material.roughness) * material.metallic);
 
-//    vec3 kd = 1.0 - fresnelSchlickRoughness(n, v, F0);
-//    vec3 kd = 1.0 - fresnelReflection(n, v, F0);
-    vec3 kd = fresnelReflection(n, v, F0);
-//    vec3 kd = fresnelSchlickRoughness(n, v, F0);
+    vec3 environmentLight = texture(EnvironmentMap, mat3(transpose(SkyboxRotationMatrix)) * n).rgb;
 
-    vec3 diffuse = (texture(EnvironmentMap, (mat3(transpose(SkyboxRotationMatrix)) * n)).rgb * reflectionColour) * material.albedo.rgb * skyboxBrightness;
-//    vec3 diffuse = (texture(EnvironmentMap, n).rgb * reflectionColour) * material.albedo.rgb;
-//    vec3 diffuse = mix(reflectionColour, material.albedo.rgb, material.roughness) * texture(EnvironmentMap, n).rgb;
+    vec3 environmentLighting = environmentLight * reflectionColour * material.albedo.rgb * lights[0].brightness;
 
-    vec3 ambient = (diffuse) * material.ao;
-//    vec3 ambient = (vec3(0.03) * diffuse) * material.ao;
-//    vec3 ambient = (kd * diffuse) * material.ao;
-//    vec3 ambient = ( diffuse) * material.ao;
+    if(DoHDRToneMapping)
+    {
+        environmentLight *= Exposure; // scale brightness with exposure
+    }
 
-//    vec3 colour = Lo;
+    vec3 ambient = environmentLighting * material.ao;
+
     vec3 colour = ambient + Lo;
 
-//    vec3 colour = (vec3(0.03) * material.albedo.rgb * material.ao) + reflectionColour + Lo;
-//    vec3 colour = (vec3(0.03) * material.albedo.rgb * material.ao) + Lo;
-////    vec3 colour = Lo;
 
+    // Bright-pass filter (read from HdrTex, writing to BlurOneColor)
+    if(luminance(colour.rgb) > LuminanceThreshold) {
 
-
-    float pixelLumen = luminance(colour.rgb);
-
-    if(pixelLumen > LuminanceThreshold) {
-//    if(luminance(colour.rgb) > LuminanceThreshold) {
-
-    //        HdrColor = vec4(0.75, 0.3, 0.68, 1.0);
-//        BlurOneColor = vec4(0.75, 0.3, 0.68, 1.0);
         BlurOneColor = vec4(colour, 1.0);
     }
     else {
 
-            BlurOneColor = vec4(0.0);
-    //        BlurOneColor = vec4(0.75, 0.3, 0.68, 1.0);
-    //        HdrColor = vec4(0.75, 0.68, 0.3, 1.0);
-//        BlurOneColor = vec4(0.75, 0.68, 0.3, 1.0);
-    ////        FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+        BlurOneColor = vec4(0.0);
     }
-
 
 
     HdrColor = vec4(colour, 1.0);
-//    HdrColor = vec4(colour, pixelLumen);
-//    FragColor = vec4(colour, 1.0);
 }
 
-//// Calculate HDR tone mapping
-//void passTwo() {
-//    
-//    // Retrive the colour from high-res texture
-//    vec4 colour = texture(HdrTex, TexCoord);
-//
-//    // Convert to XYZ - LDR [0.0, 1.0] range to HDR [0.0, float max value] range
-//    vec3 xyzColour = rgb2xyz * vec3(colour);
-//
-//    // Convert to xyY
-//    float xyzSum = xyzColour.x + xyzColour.y + xyzColour.z;
-//    vec3 xyYColour = vec3(xyzColour.x / xyzSum, xyzColour.y / xyzSum, xyzColour.y);
-//
-//    // Tone map the luminance - use xyYColour.z or xyzColour.y (they're the same value)
-//    float L = (Exposure * xyYColour.z) / AverageLumen;
-//    L = (L * (1 + L / (White * White))) / (1 + L);
-//
-//    // Convert back to XYZ using toned luminance
-//    xyzColour.x = (L * xyYColour.x) / xyYColour.y;
-//    xyzColour.y = L;
-//    xyzColour.z = (L * (1 - xyYColour.x - xyYColour.y)) / xyYColour.y;
-//
-//
-//    if(doHDRToneMapping) {
-//        // Convert back to RGB
-//        colour = vec4(xyz2rgb * xyzColour, 1.0);
-//    }
-//
-//    // Gamma correction
-//    colour = pow(colour, vec4(1.0/gammaCorrection));
-//
-//    FragColor = colour;
-//}
 
 
-// Bright-pass filter (read from HdrTex, writing to BlurTex1)
-void passTwo() {
-
-    vec4 colour = texture(HdrTex, TexCoord);
-
-    float pixelLumen = luminance(colour.rgb);
-
-    if(pixelLumen > LuminanceThreshold) {
-//    if(luminance(colour.rgb) > LuminanceThreshold) {
-
-    //        HdrColor = vec4(0.75, 0.3, 0.68, 1.0);
-//        BlurOneColor = vec4(0.75, 0.3, 0.68, 1.0);
-        BlurOneColor = colour;
-    }
-    else {
-
-            BlurOneColor = vec4(0.0);
-    //        BlurOneColor = vec4(0.75, 0.3, 0.68, 1.0);
-    //        HdrColor = vec4(0.75, 0.68, 0.3, 1.0);
-//        BlurOneColor = vec4(0.75, 0.68, 0.3, 1.0);
-    ////        FragColor = vec4(0.0, 0.0, 0.0, 0.0);
-    }
-    
-}
-
+// --- Original blur functions (horizontal then vertical) --- //
 // First blur pass (reading from BlurTex1, writing to BlurTex2)
-void passThree() {
+void passTwo() {
     
     float dy = 1.0 / (textureSize(BlurTex1, 0)).y;
+    
+    int offset = 10 - BloomOneStrength;
 
-//    float lumen = luminance(texture(BlurTex1, TexCoord).xyz);
-
-    vec4 sum = texture(BlurTex1, TexCoord) * Weight[0];
-//    vec4 sum = texture(BlurTex1, TexCoord, bloomMipmapLevel) * Weight[0];
+    vec4 sum = texture(BlurTex1, TexCoord) * Weight[0 + offset];
 
     for(int i = 0; i < 10; i++) {
         
-        sum += texture(BlurTex1, TexCoord + vec2(0.0, PixelOffset[i]) * dy) * Weight[i];// * lumen;
-//        sum += texture(BlurTex1, TexCoord + vec2(0.0, PixelOffset[i]) * dy, bloomMipmapLevel) * Weight[i];
+        sum += texture(BlurTex1, TexCoord + vec2(0.0, PixelOffset[i]) * dy) * Weight[i + offset];
 
-        sum += texture(BlurTex1, TexCoord - vec2(0.0, PixelOffset[i]) * dy) * Weight[i];// * lumen;
-//        sum += texture(BlurTex1, TexCoord - vec2(0.0, PixelOffset[i]) * dy, bloomMipmapLevel) * Weight[i];
-    }
-//
-//    BlurTwoColor = sum + vec4(0.75, 0.68, 0.3, 1.0);
-//    BlurTwoColor = vec4(0.75, 0.68, 0.3, 1.0);
-//    BlurTwoColor = sum;
-    BlurTwoColor = sum;// * vec4(0.75, 0.3, 0.68, 1.0);
-////    FragColor = sum;
-//        HdrColor = sum.rgb;
-}
-
-// Second blur pass (reading from BlurTex2, writing to BlurTex1)
-void passFour() {
-
-    float dx = 1.0 / (textureSize(BlurTex2, 0)).x;
-
-    vec4 sum = texture(BlurTex2, TexCoord) * Weight[0];
-//    vec4 sum = texture(BlurTex2, TexCoord, bloomMipmapLevel) * Weight[0];
-
-    for(int i = 0; i < 10; i++) {
-        
-        sum += texture(BlurTex2, TexCoord + vec2(PixelOffset[i], 0.0) * dx) * Weight[i];
-//        sum += texture(BlurTex2, TexCoord + vec2(PixelOffset[i], 0.0) * dx, bloomMipmapLevel) * Weight[i];
-
-        sum += texture(BlurTex2, TexCoord - vec2(PixelOffset[i], 0.0) * dx) * Weight[i];
-//        sum += texture(BlurTex2, TexCoord - vec2(PixelOffset[i], 0.0) * dx, bloomMipmapLevel) * Weight[i];
-    }
-//
-    BlurOneColor = sum;
-////    FragColor = sum;
-//        HdrColor = sum.rgb;
-}
-
-
-void passThreeMK2() {
-    
-    
-    float dy = 1.0 / (textureSize(BlurTex1, 0)).y;
-    float dx = 1.0 / (textureSize(BlurTex1, 0)).x;
-
-    vec4 sum = texture(BlurTex1, TexCoord) * Weight[0];
-
-    for(int i = 0; i < bloomAxisBlur; i++) {
-        
-        sum += texture(BlurTex1, TexCoord + vec2(0.0, PixelOffset[i] * dy)) * Weight[i];
-        sum += texture(BlurTex1, TexCoord + vec2(PixelOffset[i] * dx, 0.0)) * Weight[i];
-
-        sum += texture(BlurTex1, TexCoord - vec2(0.0, PixelOffset[i] * dy)) * Weight[i];
-        sum += texture(BlurTex1, TexCoord - vec2(PixelOffset[i] * dx, 0.0)) * Weight[i];
+        sum += texture(BlurTex1, TexCoord - vec2(0.0, PixelOffset[i]) * dy) * Weight[i + offset];
     }
 
     BlurTwoColor = sum;
 }
 
-void passFourMK2() {
-    
-    
-    float dy = 1.0 / (textureSize(BlurTex2, 0)).y;
+// Second blur pass (reading from BlurTex2, writing to BlurTex1)
+void passThree() {
+
     float dx = 1.0 / (textureSize(BlurTex2, 0)).x;
+    
+    int offset = 10 - BloomTwoStrength;
 
-    vec4 sum = texture(BlurTex2, TexCoord) * Weight[0];
+    vec4 sum = texture(BlurTex2, TexCoord) * Weight[0 + offset];
 
-    for(int i = 0; i < 10; i++) {
+    for(int i = 0; i < BloomTwoStrength; i++) {
         
-        sum += texture(BlurTex2, TexCoord + vec2(0.0, PixelOffset[i] * dy)) * Weight[i];
-        sum += texture(BlurTex2, TexCoord + vec2(PixelOffset[i] * dx, 0.0)) * Weight[i];
+        sum += texture(BlurTex2, TexCoord + vec2(PixelOffset[i], 0.0) * dx) * Weight[i + offset];
 
-        sum += texture(BlurTex2, TexCoord - vec2(0.0, PixelOffset[i] * dy)) * Weight[i];
-        sum += texture(BlurTex2, TexCoord - vec2(PixelOffset[i] * dx, 0.0)) * Weight[i];
+        sum += texture(BlurTex2, TexCoord - vec2(PixelOffset[i], 0.0) * dx) * Weight[i + offset];
     }
 
     BlurOneColor = sum;
 }
 
 
-void passFourMK3() {
-    
-    float dy = 1.0 / (textureSize(BlurTex2, 0)).y;
-    float dx = 1.0 / (textureSize(BlurTex2, 0)).x;
-
-    vec4 sum = texture(BlurTex2, TexCoord) * Weight[0];
-
-    for(int i = 0; i < bloomDiagonalBlur; i++) {
-        
-        sum += texture(BlurTex2, TexCoord + vec2( PixelOffset[i] * dx,  PixelOffset[i] * dy)) * Weight[i];
-        sum += texture(BlurTex2, TexCoord + vec2( PixelOffset[i] * dx, -PixelOffset[i] * dy)) * Weight[i];
-
-        sum += texture(BlurTex2, TexCoord + vec2(-PixelOffset[i] * dx, -PixelOffset[i] * dy)) * Weight[i];
-        sum += texture(BlurTex2, TexCoord + vec2(-PixelOffset[i] * dx,  PixelOffset[i] * dy)) * Weight[i];
-    }
-
-    BlurOneColor = sum;
-}
-
-
-void passThreeMK4() {
-    
+// --- Version 2 blur functions (horizontal + vertical, repeated) --- //
+// First blur pass (reading from BlurTex1, writing to BlurTex2)
+void passTwo_v2() {
     
     float dy = 1.0 / (textureSize(BlurTex1, 0)).y;
     float dx = 1.0 / (textureSize(BlurTex1, 0)).x;
     
-    int offset = 10 - bloomAxisBlur;
+    int offset = 10 - BloomOneStrength;
 
     vec4 sum = texture(BlurTex1, TexCoord) * Weight[0 + offset];
 
-    for(int i = 0; i < bloomAxisBlur; i++) {
+    for(int i = 0; i < BloomOneStrength; i++) {
+        
+        sum += texture(BlurTex1, TexCoord + vec2(0.0, PixelOffset[i] * dy)) * Weight[i + offset];
+        sum += texture(BlurTex1, TexCoord + vec2(PixelOffset[i] * dx, 0.0)) * Weight[i + offset];
+
+        sum += texture(BlurTex1, TexCoord - vec2(0.0, PixelOffset[i] * dy)) * Weight[i + offset];
+        sum += texture(BlurTex1, TexCoord - vec2(PixelOffset[i] * dx, 0.0)) * Weight[i + offset];
+    }
+
+    BlurTwoColor = sum;
+}
+
+// Second blur pass (reading from BlurTex2, writing to BlurTex1)
+void passThree_v2() {
+    
+    
+    float dy = 1.0 / (textureSize(BlurTex2, 0)).y;
+    float dx = 1.0 / (textureSize(BlurTex2, 0)).x;
+    
+    int offset = 10 - BloomTwoStrength;
+
+    vec4 sum = texture(BlurTex2, TexCoord) * Weight[0 + offset];
+
+    for(int i = 0; i < BloomTwoStrength; i++) {
+        
+        sum += texture(BlurTex2, TexCoord + vec2(0.0, PixelOffset[i] * dy)) * Weight[i + offset];
+        sum += texture(BlurTex2, TexCoord + vec2(PixelOffset[i] * dx, 0.0)) * Weight[i + offset];
+
+        sum += texture(BlurTex2, TexCoord - vec2(0.0, PixelOffset[i] * dy)) * Weight[i + offset];
+        sum += texture(BlurTex2, TexCoord - vec2(PixelOffset[i] * dx, 0.0)) * Weight[i + offset];
+    }
+
+    BlurOneColor = sum;
+}
+
+
+// --- Version 3 blur functions (horizontal + vertical, then diagonal) --- //
+// First blur pass (reading from BlurTex1, writing to BlurTex2)
+void passTwo_v3() {
+    
+    float dy = 1.0 / (textureSize(BlurTex1, 0)).y;
+    float dx = 1.0 / (textureSize(BlurTex1, 0)).x;
+    
+    int offset = 10 - BloomOneStrength;
+
+    vec4 sum = texture(BlurTex1, TexCoord) * Weight[0 + offset];
+
+    for(int i = 0; i < BloomOneStrength; i++) {
+        
+        sum += texture(BlurTex1, TexCoord + vec2(0.0, PixelOffset[i] * dy)) * Weight[i + offset];
+        sum += texture(BlurTex1, TexCoord + vec2(PixelOffset[i] * dx, 0.0)) * Weight[i + offset];
+
+        sum += texture(BlurTex1, TexCoord - vec2(0.0, PixelOffset[i] * dy)) * Weight[i + offset];
+        sum += texture(BlurTex1, TexCoord - vec2(PixelOffset[i] * dx, 0.0)) * Weight[i + offset];
+    }
+
+    BlurTwoColor = sum;
+}
+
+// Second blur pass (reading from BlurTex2, writing to BlurTex1)
+void passThree_v3() {
+    
+    float dy = 1.0 / (textureSize(BlurTex2, 0)).y;
+    float dx = 1.0 / (textureSize(BlurTex2, 0)).x;
+    
+    int offset = 10 - BloomTwoStrength;
+
+    vec4 sum = texture(BlurTex2, TexCoord) * Weight[0 + offset];
+
+    for(int i = 0; i < BloomTwoStrength; i++) {
+        
+        sum += texture(BlurTex2, TexCoord + vec2( PixelOffset[i] * dx,  PixelOffset[i] * dy)) * Weight[i + offset];
+        sum += texture(BlurTex2, TexCoord + vec2( PixelOffset[i] * dx, -PixelOffset[i] * dy)) * Weight[i + offset];
+
+        sum += texture(BlurTex2, TexCoord + vec2(-PixelOffset[i] * dx, -PixelOffset[i] * dy)) * Weight[i + offset];
+        sum += texture(BlurTex2, TexCoord + vec2(-PixelOffset[i] * dx,  PixelOffset[i] * dy)) * Weight[i + offset];
+    }
+
+    BlurOneColor = sum;
+}
+
+
+// --- Version 4 blur functions (horizontal + vertical + diagonal, repeated) --- //
+// First blur pass (reading from BlurTex1, writing to BlurTex2)
+void passTwo_v4() {
+    
+    float dy = 1.0 / (textureSize(BlurTex1, 0)).y;
+    float dx = 1.0 / (textureSize(BlurTex1, 0)).x;
+    
+    int offset = 10 - BloomOneStrength;
+
+    vec4 sum = texture(BlurTex1, TexCoord) * Weight[0 + offset];
+
+    for(int i = 0; i < BloomOneStrength; i++) {
         
         sum += texture(BlurTex1, TexCoord + vec2(0.0, PixelOffset[i] * dy)) * Weight[i + offset];
         sum += texture(BlurTex1, TexCoord + vec2(PixelOffset[i] * dx, 0.0)) * Weight[i + offset];
@@ -563,16 +452,17 @@ void passThreeMK4() {
     BlurTwoColor = sum;
 }
 
-void passFourMK4() {
+// Second blur pass (reading from BlurTex2, writing to BlurTex1)
+void passThree_v4() {
     
     float dy = 1.0 / (textureSize(BlurTex2, 0)).y;
     float dx = 1.0 / (textureSize(BlurTex2, 0)).x;
 
-    int offset = 10 - bloomDiagonalBlur;
+    int offset = 10 - BloomTwoStrength;
 
     vec4 sum = texture(BlurTex2, TexCoord) * Weight[0 + offset];
 
-    for(int i = 0; i < bloomDiagonalBlur; i++) {
+    for(int i = 0; i < BloomTwoStrength; i++) {
 
         sum += texture(BlurTex2, TexCoord + vec2(0.0, PixelOffset[i] * dy)) * Weight[i + offset];
         sum += texture(BlurTex2, TexCoord + vec2(PixelOffset[i] * dx, 0.0)) * Weight[i + offset];
@@ -592,9 +482,10 @@ void passFourMK4() {
 }
 
 
+
 // Apply HDR tone mapping to HdrTex, then combine with blured bright-pass filter
 // (reading from HdrTex & BlurTex1, writing to default buffer)
-void passFive() {
+void passFour() {
 
     // --- Tone mapping --- //
 
@@ -618,27 +509,31 @@ void passFive() {
     xyzColour.y = L;
     xyzColour.z = (L * (1 - xyYColour.x - xyYColour.y)) / xyYColour.y;
 
-    if(doHDRToneMapping) {
+
+    if(DoHDRToneMapping) {
         // Convert back to RGB
         colour = vec4(xyz2rgb * xyzColour, 1.0);
     }
 
 
     // --- Combine HDR with blurred texture --- //
-    if(doBloom)
+    if(DoBloom)
     {
         vec4 blurredTex = texture(BlurTex1, TexCoord); // accessing with linear filtering gives us extra blur
         colour += blurredTex;
     }
 
+
     // Gamma correction
-    colour = pow(colour, vec4(1.0/gammaCorrection));
+    colour = pow(colour, vec4(1.0 / GammaCorrection));
 
-//    FragColor = texture(BlurTex1, TexCoord);
+
     FragColor = colour;
-//    FragColor = vec4(0.75, 0.3, 0.68, 1.0);
-
+//    FragColor = texture(BlurTex1, TexCoord);
+//    FragColor = texture(BlurTex2, TexCoord);
 }
+
+
 
 void main() {
     
@@ -646,20 +541,18 @@ void main() {
         passOne();
     }
     else if (PassNo == 2) {
-        passTwo();
+//        passTwo();
+//        passTwo_v2();
+//        passTwo_v3();
+        passTwo_v4();
     }
     else if (PassNo == 3) {
 //        passThree();
-//        passThreeMK2();
-        passThreeMK4();
+//        passThree_v2();
+//        passThree_v3();
+        passThree_v4();
     }
     else if (PassNo == 4) {
-//        passFour();
-//        passFourMK2();
-//        passFourMK3();
-        passFourMK4();
-    }
-    else if (PassNo == 5) {
-        passFive();
+        passFour();
     }
 }

@@ -9,9 +9,7 @@ struct MaterialInfo
 
 	GLfloat roughness = 0.1f;		 // ambient light reflectivity factor
 	GLfloat metallic = 0.0f;		 // diffuse light reflectivity factor
-
-	//glm::vec3 F0 = glm::vec3();
-
+	
 	GLuint albedoTex;			// base texture (colour info)
 	GLuint detailTex;			// for up close detail texture - currently unused
 	GLuint roughnessTex;		// for dictating material roughness value

@@ -1,8 +1,6 @@
 #version 460
 
-//in vec4 vecPosition;
 in vec3 TexCoord;
-//in vec3 Vec;
 
 layout (location = 0) out vec4 FragColor;
 layout (location = 1) out vec4 HdrColor;
@@ -18,36 +16,22 @@ float luminance(vec3 colour) {
 }
 
 void main() {
-    
-//// Marius code - broke; MVP has been changed to VP matrix due to my Model usage - not that it makes a difference
-//    FragColor = vec4(texture(SkyboxTex, normalize(Vec)).rgb, 1.0f);
 
     vec3 colour = texture(SkyboxTex, TexCoord).rgb;
 
-    float pixelLumen = luminance(colour.rgb);
+        if(luminance(colour.rgb) > LuminanceThreshold) {
 
-        if(pixelLumen > LuminanceThreshold) {
-    //    if(luminance(colour.rgb) > LuminanceThreshold) {
-
-        //        HdrColor = vec4(0.75, 0.3, 0.68, 1.0);
-    //        BlurOneColor = vec4(0.75, 0.3, 0.68, 1.0);
             BlurOneColor = vec4(colour, 1.0);
         }
         else {
 
-                BlurOneColor = vec4(0.0);
-        //        BlurOneColor = vec4(0.75, 0.3, 0.68, 1.0);
-        //        HdrColor = vec4(0.75, 0.68, 0.3, 1.0);
-    //        BlurOneColor = vec4(0.75, 0.68, 0.3, 1.0);
-        ////        FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+            BlurOneColor = vec4(0.0);
         }
 
-
-    // HDR tonemapping and gamma correction
+//    // HDR tonemapping and gamma correction - disabled as tonemapping and gamma correction are take care of in the main shader (stage 5)
 //    colour = colour / (colour + vec3(1.0));
 //    colour = pow(colour, vec3(1.0/2.2));
-
-    // Correct for my Model usage
-    HdrColor = vec4(colour, 1.0);
+    
 //    FragColor = vec4(colour, 1.0);
+    HdrColor = vec4(colour, 1.0);
 }

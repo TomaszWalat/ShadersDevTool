@@ -1,7 +1,6 @@
 #ifndef SCENEBASIC_UNIFORM_H
 #define SCENEBASIC_UNIFORM_H
 
-//#include <glad/glad.h>
 #include <glm/glm.hpp>
 
 #include <memory>
@@ -18,33 +17,38 @@
 #include "model/teapot.h"
 #include "model/objmesh.h"
 #include "model/skybox.h"
+#include "model/sphere.h"
 
 class SceneBasic_Uniform : public Scene
 {
 private:
-    //GLuint currentProg = 0;
     std::string currentProg;
-    //GLSLProgram prog;
-    std::map<std::string, std::unique_ptr<GLSLProgram>> progs;
+    std::map<std::string, std::unique_ptr<GLSLProgram>> progs; // Stores the various shader programs compiled by compile()
 	
-	std::vector<LightInfo> lights;
+	std::vector<LightInfo> lights; // Stores scene lights
 
-	float gammaCorrection = 2.2f;
-	bool doHDRToneMapping = true;
-	bool doBloom = true;
-	float skyboxBrightness = 10.0f;
+	bool usePBRTextures = true; // Indicates if the texture or user input based PBR shader is used
+
+	float gammaCorrection = 2.2f; // Gamma correction value
+	
+	bool doHDRToneMapping = true; // HDR on/off
 	float hdrExposure = 0.12f;
-	float luminanceThreshold = 1.7f;
-	int bloomAxisBlur = 6;
-	int bloomDiagonalBlur = 5;
-	//int bloomMipmapLevel = 3;
-	float weights[10], sum, sigma2 = 25.0f;
-	int bloomBufferWidth, bloomBufferHeight;
 
+	bool doBloom = true; // Bloom on/off
+	float weights[10], sum, sigma2 = 25.0f; // for calculating gaussian blur weights
+	float luminanceThreshold = 1.7f; // bloom brightness threshold
+	int bloomBlurOneStrength = 6;	// strength of first blur pass
+	int bloomBlurTwoStrength = 5;	// strength of second blur pass
+	
+
+	// For changing skybox orientation
 	glm::mat4 skyboxRotate180Y = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
+	// --- Models --- //
     SkyBox skybox;
-    Plane floor;
+
+	// show floor 1
+    Plane floor_1;
     Cube metalCube;
     Cube box;
     Torus torus;
@@ -52,26 +56,30 @@ private:
     std::unique_ptr<ObjMesh> piggy;
     std::unique_ptr<ObjMesh> ogre;
 
-    void compile();
 
-	void setupFBOs();
+    void compile(); // Assembles and compiles shader programs from "shaders" vector
+
+	// Bloom / blur functions
+	void setupFBO();
 	void setupFrameQuad();
 	void setupSamplers();
 	void computeWeights();
 	float gauss(float x, float sigma2);
+	void computeLogAvgLuminance();
 
+	// Shader uniform setting functions
     void setMatrices();
     void setMeshUniforms(TriangleMesh* mesh);
 	void setLights();
 	void setWeights();
 
+	// Drawing functions (PBR, HDR, Bloom)
 	void drawPassOne();
 	void drawPassTwo();
 	void drawPassThree();
 	void drawPassFour();
-	void drawPassFive();
-	void computeLogAvgLuminance();
 
+	// Core drawing functions
 	void drawScene();
     void drawGUI();
 
@@ -79,25 +87,31 @@ public:
     SceneBasic_Uniform();
 
     void initScene();
-    void update( float t );
-    void render();
-    void resize(int, int);
-    void changeShader(std::string shaderName);
+
+    void changeShader(std::string shaderName); // Function for dynamically changing shaders 
+
+    void render(); // Render function - calls draw functions
+
+    void update( float t ); // Game loop / time update - for animations and/or physics
+
+    void resize(int, int); // Resize viewport
 
     ~SceneBasic_Uniform();
 
 private:
+	// HDR and Bloom processing
 	struct BufferTextures
 	{
 		GLuint frame_Quad;
-		GLuint hdr_FBO, blur_FBO;
+		GLuint hdr_FBO;
 		GLuint hdr_Colour, blur_One, blur_Two;
-		//GLuint hdr_averageLumen;
 		GLuint linear_Sampler, nearest_Sampler;
 	}bufferTextures;
 
+	// General texture storage
     struct Textures
 	{
+		// Practical and/or generated textures
 
 		GLuint skybox_MountainLake =		Texture::loadCubeMap("media/texture/skybox/lake180", ".jpg");
 		GLuint skybox_PisaHDR =				Texture::loadHdrCubeMap("media/texture/cube/pisa-hdr/pisa");
