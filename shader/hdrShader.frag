@@ -52,6 +52,7 @@ uniform mat4 SkyboxRotationMatrix;
 uniform float gammaCorrection;
 uniform bool doHDRToneMapping;
 uniform bool doBloom;
+uniform int bloomMipmapLevel;
 uniform float skyboxBrightness;
 
 const float Pi = 3.14159265358979323846;
@@ -239,6 +240,7 @@ vec3 computeMicrofacetModel(in int lightNo, in vec3 F0, in vec3 n, in vec3 v) {
 ////    return (((fd * material.colour.rgb) / Pi) + fs) * radiance * dot(n, -s);
 }
 
+
 float luminance(vec3 colour) {
     
     return 0.2126 * colour.r + 0.7152 * colour.g + 0.0722 * colour.b;
@@ -414,13 +416,18 @@ void passThree() {
     
     float dy = 1.0 / (textureSize(BlurTex1, 0)).y;
 
+//    float lumen = luminance(texture(BlurTex1, TexCoord).xyz);
+
     vec4 sum = texture(BlurTex1, TexCoord) * Weight[0];
+//    vec4 sum = texture(BlurTex1, TexCoord, bloomMipmapLevel) * Weight[0];
 
     for(int i = 0; i < 10; i++) {
         
-        sum += texture(BlurTex1, TexCoord + vec2(0.0, PixelOffset[i]) * dy) * Weight[i];
+        sum += texture(BlurTex1, TexCoord + vec2(0.0, PixelOffset[i]) * dy) * Weight[i];// * lumen;
+//        sum += texture(BlurTex1, TexCoord + vec2(0.0, PixelOffset[i]) * dy, bloomMipmapLevel) * Weight[i];
 
-        sum += texture(BlurTex1, TexCoord - vec2(0.0, PixelOffset[i]) * dy) * Weight[i];
+        sum += texture(BlurTex1, TexCoord - vec2(0.0, PixelOffset[i]) * dy) * Weight[i];// * lumen;
+//        sum += texture(BlurTex1, TexCoord - vec2(0.0, PixelOffset[i]) * dy, bloomMipmapLevel) * Weight[i];
     }
 //
 //    BlurTwoColor = sum + vec4(0.75, 0.68, 0.3, 1.0);
@@ -437,12 +444,15 @@ void passFour() {
     float dx = 1.0 / (textureSize(BlurTex2, 0)).x;
 
     vec4 sum = texture(BlurTex2, TexCoord) * Weight[0];
+//    vec4 sum = texture(BlurTex2, TexCoord, bloomMipmapLevel) * Weight[0];
 
     for(int i = 0; i < 10; i++) {
         
         sum += texture(BlurTex2, TexCoord + vec2(PixelOffset[i], 0.0) * dx) * Weight[i];
+//        sum += texture(BlurTex2, TexCoord + vec2(PixelOffset[i], 0.0) * dx, bloomMipmapLevel) * Weight[i];
 
         sum += texture(BlurTex2, TexCoord - vec2(PixelOffset[i], 0.0) * dx) * Weight[i];
+//        sum += texture(BlurTex2, TexCoord - vec2(PixelOffset[i], 0.0) * dx, bloomMipmapLevel) * Weight[i];
     }
 //
     BlurOneColor = sum;

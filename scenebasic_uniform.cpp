@@ -109,8 +109,8 @@ void SceneBasic_Uniform::initScene()
 
     compile();
 
-	glClearColor(0.3, 0.75, 0.68, 1.0);
-	//glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	//glClearColor(0.3, 0.75, 0.68, 1.0);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glEnable(GL_DEPTH_TEST);
 	
 	// Setting object textures
@@ -389,6 +389,7 @@ void SceneBasic_Uniform::setupFBOs()
 	glGenTextures(1, &bufferTextures.blur_One);
 	glBindTexture(GL_TEXTURE_2D, bufferTextures.blur_One);
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, width, height);
+	//glGenerateTextureMipmap(GL_TEXTURE9);
 	//glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, bloomBufferWidth, bloomBufferHeight);
 
 	// Blur texture two
@@ -396,6 +397,7 @@ void SceneBasic_Uniform::setupFBOs()
 	glGenTextures(1, &bufferTextures.blur_Two);
 	glBindTexture(GL_TEXTURE_2D, bufferTextures.blur_Two);
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, width, height);
+	//glGenerateTextureMipmap(GL_TEXTURE10);
 	//glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, bloomBufferWidth, bloomBufferHeight);
 
 	// Attach depth & hdr images to frame buffer
@@ -651,6 +653,7 @@ void SceneBasic_Uniform::setLights()
 	progs.at(currentProg)->setUniform("skyboxBrightness", skyboxBrightness);
 	progs.at(currentProg)->setUniform("Exposure", hdrExposure);
 	progs.at(currentProg)->setUniform("LuminanceThreshold", luminanceThreshold);
+	progs.at(currentProg)->setUniform("bloomMipmapLevel", bloomMipmapLevel);
 
 	for(int i = 0; i < lights.size(); i++)
 	{
@@ -855,12 +858,18 @@ void SceneBasic_Uniform::drawPassThree()
 
 	//// Set framebuffer colour data to blur two texture
 	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bufferTextures.blur_Two, 0);
+
 	
-	
+	// Read from blur texture one, using linear sampling for extra blur
+	glBindSampler(9, bufferTextures.linear_Sampler);
+
 	// Render to the full screen quad
 	glBindVertexArray(bufferTextures.frame_Quad);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
-	
+
+	// Revert to nearest sampling
+	glBindSampler(9, bufferTextures.nearest_Sampler);
+
 	// Revert to default framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -900,9 +909,16 @@ void SceneBasic_Uniform::drawPassFour()
 	GLenum drawBuffers2[] = { GL_NONE, GL_NONE, GL_COLOR_ATTACHMENT1, GL_NONE };
 	glDrawBuffers(4, drawBuffers2);
 
+	
+	// Read from blur texture one, using linear sampling for extra blur
+	glBindSampler(10, bufferTextures.linear_Sampler);
+
 	// Render to the full screen quad
 	glBindVertexArray(bufferTextures.frame_Quad);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+	
+	// Revert to nearest sampling
+	glBindSampler(10, bufferTextures.nearest_Sampler);
 
 	//glClear(GL_COLOR_BUFFER_BIT);
 
@@ -953,6 +969,13 @@ void SceneBasic_Uniform::drawPassFive()
 
 	// Revert to nearest sampling
 	glBindSampler(9, bufferTextures.nearest_Sampler);
+
+	
+	//std::string currentShader = currentProg;
+	//changeShader("Skybox Shader");
+	//progs.at(currentProg)->setUniform("ViewProjectionMatrix", (cam->getProjection() * cam->getView() * skyboxRotate180Y));
+	//skybox.render();
+	//changeShader(currentShader);
 }
 
 
@@ -992,12 +1015,12 @@ void SceneBasic_Uniform::drawScene()
 	//changeShader(currentShader);
 
 
-	//glDepthMask(GL_FALSE);
+	////glDepthMask(GL_FALSE);
 	changeShader("Skybox Shader");
 	progs.at(currentProg)->setUniform("ViewProjectionMatrix", (cam->getProjection() * cam->getView() * skyboxRotate180Y));
 	skybox.render();
 	changeShader(currentShader);
-	//glDepthMask(GL_TRUE);
+	////glDepthMask(GL_TRUE);
 }
 
 
@@ -1111,6 +1134,8 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::Separator();
 		ImGui::SliderFloat("Bloom Threshold", &luminanceThreshold, 0.01f, 5.0f);
 		ImGui::Separator();
+		ImGui::SliderInt("Bloom Mipmap level", &bloomMipmapLevel, 0, 16);
+		ImGui::Separator();
 		ImGui::Spacing();
 
 		std::string id = "null";
@@ -1215,4 +1240,88 @@ void SceneBasic_Uniform::resize(int w, int h)
     glViewport(0,0,w,h);
 
 	//projection = glm::perspective(glm::radians(70.0f), (float)w/h, 0.3f, 100.0f);
+}
+
+
+SceneBasic_Uniform::~SceneBasic_Uniform()
+{
+	glDeleteFramebuffers(1, &bufferTextures.blur_FBO);
+	//glDeleteBuffers();
+	glDeleteVertexArrays(1, &bufferTextures.frame_Quad);
+	glDeleteSamplers(1, &bufferTextures.linear_Sampler);
+	glDeleteSamplers(1, &bufferTextures.nearest_Sampler);
+
+	glDeleteTextures(1, &bufferTextures.hdr_Colour);
+	glDeleteTextures(1, &bufferTextures.blur_One);
+	glDeleteTextures(1, &bufferTextures.blur_Two);
+
+	glDeleteTextures(1, &textures.skybox_MountainLake);
+	glDeleteTextures(1, &textures.skybox_PisaHDR);
+	glDeleteTextures(1, &textures.brick_Albedo);
+	glDeleteTextures(1, &textures.ogre_Albedo);
+	glDeleteTextures(1, &textures.ogre_NormalMap);
+	glDeleteTextures(1, &textures.ogre_AmbientOcclusionMap);
+	glDeleteTextures(1, &textures.ripple_NormalMap);
+	glDeleteTextures(1, &textures.wood_Albedo);
+	glDeleteTextures(1, &textures.fire);
+	glDeleteTextures(1, &textures.star);
+	glDeleteTextures(1, &textures.cement);
+
+	glDeleteTextures(1, &textures.alienMetal_Albedo);
+	glDeleteTextures(1, &textures.alienMetal_Roughness);
+	glDeleteTextures(1, &textures.alienMetal_Metallic);
+	glDeleteTextures(1, &textures.alienMetal_NormalMap);
+	glDeleteTextures(1, &textures.alienMetal_HeightMap);
+	glDeleteTextures(1, &textures.alienMetal_AmbientOcclusionMap);
+
+	glDeleteTextures(1, &textures.copperScuffed_Albedo);
+	glDeleteTextures(1, &textures.copperScuffed_Albedo_Boosted);
+	glDeleteTextures(1, &textures.copperScuffed_Roughness);
+	glDeleteTextures(1, &textures.copperScuffed_Metallic);
+	glDeleteTextures(1, &textures.copperScuffed_NormalMap);
+	glDeleteTextures(1, &textures.copperScuffed_AmbientOcclusionMap);
+
+	glDeleteTextures(1, &textures.rustedIron_Albedo);
+	glDeleteTextures(1, &textures.rustedIron_Roughness);
+	glDeleteTextures(1, &textures.rustedIron_Metallic);
+	glDeleteTextures(1, &textures.rustedIron_NormalMap);
+	glDeleteTextures(1, &textures.rustedIron_AmbientOcclusionMap);
+
+	glDeleteTextures(1, &textures.bambooWood_Albedo);
+	glDeleteTextures(1, &textures.bambooWood_Roughness);
+	glDeleteTextures(1, &textures.bambooWood_Metallic);
+	glDeleteTextures(1, &textures.bambooWood_NormalMap);
+	glDeleteTextures(1, &textures.bambooWood_AmbientOcclusionMap);
+
+	glDeleteTextures(1, &textures.redBrick_Albedo);
+	glDeleteTextures(1, &textures.redBrick_Roughness);
+	glDeleteTextures(1, &textures.redBrick_Metallic);
+	glDeleteTextures(1, &textures.redBrick_NormalMap);
+	glDeleteTextures(1, &textures.redBrick_HeightMap);
+	glDeleteTextures(1, &textures.redBrick_AmbientOcclusionMap);
+
+	glDeleteTextures(1, &textures.grayGraniteFlecks_Albedo);
+	glDeleteTextures(1, &textures.grayGraniteFlecks_Roughness);
+	glDeleteTextures(1, &textures.grayGraniteFlecks_Metallic);
+	glDeleteTextures(1, &textures.grayGraniteFlecks_NormalMap);
+	glDeleteTextures(1, &textures.grayGraniteFlecks_AmbientOcclusionMap);
+
+	glDeleteTextures(1, &textures.scuffedPlastic_Albedo);
+	glDeleteTextures(1, &textures.scuffedPlastic_Roughness);
+	glDeleteTextures(1, &textures.scuffedPlastic_Metallic);
+	glDeleteTextures(1, &textures.scuffedPlastic_NormalMap);
+	glDeleteTextures(1, &textures.scuffedPlastic_AmbientOcclusionMap);
+
+	glDeleteTextures(1, &textures.humanSkin_Albedo);
+	glDeleteTextures(1, &textures.humanSkin_Roughness);
+	glDeleteTextures(1, &textures.humanSkin_Metallic);
+	glDeleteTextures(1, &textures.humanSkin_NormalMap);
+	glDeleteTextures(1, &textures.humanSkin_HeightMap);
+	glDeleteTextures(1, &textures.humanSkin_AmbientOcclusionMap);
+
+	glDeleteTextures(1, &textures.skybox_ArchesE_PineTree);
+	glDeleteTextures(1, &textures.skybox_env_ArchesE_PineTree);
+	glDeleteTextures(1, &textures.skybox_SummiPool);
+	glDeleteTextures(1, &textures.skybox_env_SummiPool);
+
 }

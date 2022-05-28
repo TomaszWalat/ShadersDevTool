@@ -35,6 +35,7 @@ private:
 	float skyboxBrightness = 1.0f;
 	float hdrExposure = 1.0f;
 	float luminanceThreshold = 1.7f;
+	int bloomMipmapLevel = 3;
 	float weights[10], sum, sigma2 = 25.0f;
 	int bloomBufferWidth, bloomBufferHeight;
 
@@ -81,7 +82,7 @@ public:
     void resize(int, int);
     void changeShader(std::string shaderName);
 
-    virtual ~SceneBasic_Uniform() {};
+    ~SceneBasic_Uniform();
 
 private:
 	struct BufferTextures
