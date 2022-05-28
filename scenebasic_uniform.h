@@ -32,10 +32,12 @@ private:
 	float gammaCorrection = 2.2f;
 	bool doHDRToneMapping = true;
 	bool doBloom = true;
-	float skyboxBrightness = 1.0f;
-	float hdrExposure = 1.0f;
+	float skyboxBrightness = 10.0f;
+	float hdrExposure = 0.12f;
 	float luminanceThreshold = 1.7f;
-	int bloomMipmapLevel = 3;
+	int bloomAxisBlur = 6;
+	int bloomDiagonalBlur = 5;
+	//int bloomMipmapLevel = 3;
 	float weights[10], sum, sigma2 = 25.0f;
 	int bloomBufferWidth, bloomBufferHeight;
 

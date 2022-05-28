@@ -52,7 +52,9 @@ uniform mat4 SkyboxRotationMatrix;
 uniform float gammaCorrection;
 uniform bool doHDRToneMapping;
 uniform bool doBloom;
-uniform int bloomMipmapLevel;
+uniform int bloomAxisBlur;
+uniform int bloomDiagonalBlur;
+//uniform int bloomMipmapLevel;
 uniform float skyboxBrightness;
 
 const float Pi = 3.14159265358979323846;
@@ -334,6 +336,8 @@ void passOne() {
 //    vec3 colour = (vec3(0.03) * material.albedo.rgb * material.ao) + Lo;
 ////    vec3 colour = Lo;
 
+
+
     float pixelLumen = luminance(colour.rgb);
 
     if(pixelLumen > LuminanceThreshold) {
@@ -351,6 +355,8 @@ void passOne() {
 //        BlurOneColor = vec4(0.75, 0.68, 0.3, 1.0);
     ////        FragColor = vec4(0.0, 0.0, 0.0, 0.0);
     }
+
+
 
     HdrColor = vec4(colour, 1.0);
 //    HdrColor = vec4(colour, pixelLumen);
@@ -391,24 +397,30 @@ void passOne() {
 //    FragColor = colour;
 //}
 
+
 // Bright-pass filter (read from HdrTex, writing to BlurTex1)
 void passTwo() {
 
     vec4 colour = texture(HdrTex, TexCoord);
 
-//    if(colour.a > LuminanceThreshold) {
-    if(luminance(colour.rgb) > LuminanceThreshold) {
+    float pixelLumen = luminance(colour.rgb);
 
-//        HdrColor = vec4(0.75, 0.3, 0.68, 1.0);
-        BlurOneColor = vec4(0.75, 0.3, 0.68, 1.0);
+    if(pixelLumen > LuminanceThreshold) {
+//    if(luminance(colour.rgb) > LuminanceThreshold) {
+
+    //        HdrColor = vec4(0.75, 0.3, 0.68, 1.0);
+//        BlurOneColor = vec4(0.75, 0.3, 0.68, 1.0);
+        BlurOneColor = colour;
     }
     else {
 
-//        BlurOneColor = vec4(0.75, 0.3, 0.68, 1.0);
-//        HdrColor = vec4(0.75, 0.68, 0.3, 1.0);
-        BlurOneColor = vec4(0.75, 0.68, 0.3, 1.0);
-////        FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+            BlurOneColor = vec4(0.0);
+    //        BlurOneColor = vec4(0.75, 0.3, 0.68, 1.0);
+    //        HdrColor = vec4(0.75, 0.68, 0.3, 1.0);
+//        BlurOneColor = vec4(0.75, 0.68, 0.3, 1.0);
+    ////        FragColor = vec4(0.0, 0.0, 0.0, 0.0);
     }
+    
 }
 
 // First blur pass (reading from BlurTex1, writing to BlurTex2)
@@ -459,6 +471,126 @@ void passFour() {
 ////    FragColor = sum;
 //        HdrColor = sum.rgb;
 }
+
+
+void passThreeMK2() {
+    
+    
+    float dy = 1.0 / (textureSize(BlurTex1, 0)).y;
+    float dx = 1.0 / (textureSize(BlurTex1, 0)).x;
+
+    vec4 sum = texture(BlurTex1, TexCoord) * Weight[0];
+
+    for(int i = 0; i < bloomAxisBlur; i++) {
+        
+        sum += texture(BlurTex1, TexCoord + vec2(0.0, PixelOffset[i] * dy)) * Weight[i];
+        sum += texture(BlurTex1, TexCoord + vec2(PixelOffset[i] * dx, 0.0)) * Weight[i];
+
+        sum += texture(BlurTex1, TexCoord - vec2(0.0, PixelOffset[i] * dy)) * Weight[i];
+        sum += texture(BlurTex1, TexCoord - vec2(PixelOffset[i] * dx, 0.0)) * Weight[i];
+    }
+
+    BlurTwoColor = sum;
+}
+
+void passFourMK2() {
+    
+    
+    float dy = 1.0 / (textureSize(BlurTex2, 0)).y;
+    float dx = 1.0 / (textureSize(BlurTex2, 0)).x;
+
+    vec4 sum = texture(BlurTex2, TexCoord) * Weight[0];
+
+    for(int i = 0; i < 10; i++) {
+        
+        sum += texture(BlurTex2, TexCoord + vec2(0.0, PixelOffset[i] * dy)) * Weight[i];
+        sum += texture(BlurTex2, TexCoord + vec2(PixelOffset[i] * dx, 0.0)) * Weight[i];
+
+        sum += texture(BlurTex2, TexCoord - vec2(0.0, PixelOffset[i] * dy)) * Weight[i];
+        sum += texture(BlurTex2, TexCoord - vec2(PixelOffset[i] * dx, 0.0)) * Weight[i];
+    }
+
+    BlurOneColor = sum;
+}
+
+
+void passFourMK3() {
+    
+    float dy = 1.0 / (textureSize(BlurTex2, 0)).y;
+    float dx = 1.0 / (textureSize(BlurTex2, 0)).x;
+
+    vec4 sum = texture(BlurTex2, TexCoord) * Weight[0];
+
+    for(int i = 0; i < bloomDiagonalBlur; i++) {
+        
+        sum += texture(BlurTex2, TexCoord + vec2( PixelOffset[i] * dx,  PixelOffset[i] * dy)) * Weight[i];
+        sum += texture(BlurTex2, TexCoord + vec2( PixelOffset[i] * dx, -PixelOffset[i] * dy)) * Weight[i];
+
+        sum += texture(BlurTex2, TexCoord + vec2(-PixelOffset[i] * dx, -PixelOffset[i] * dy)) * Weight[i];
+        sum += texture(BlurTex2, TexCoord + vec2(-PixelOffset[i] * dx,  PixelOffset[i] * dy)) * Weight[i];
+    }
+
+    BlurOneColor = sum;
+}
+
+
+void passThreeMK4() {
+    
+    
+    float dy = 1.0 / (textureSize(BlurTex1, 0)).y;
+    float dx = 1.0 / (textureSize(BlurTex1, 0)).x;
+    
+    int offset = 10 - bloomAxisBlur;
+
+    vec4 sum = texture(BlurTex1, TexCoord) * Weight[0 + offset];
+
+    for(int i = 0; i < bloomAxisBlur; i++) {
+        
+        sum += texture(BlurTex1, TexCoord + vec2(0.0, PixelOffset[i] * dy)) * Weight[i + offset];
+        sum += texture(BlurTex1, TexCoord + vec2(PixelOffset[i] * dx, 0.0)) * Weight[i + offset];
+
+        sum += texture(BlurTex1, TexCoord - vec2(0.0, PixelOffset[i] * dy)) * Weight[i + offset];
+        sum += texture(BlurTex1, TexCoord - vec2(PixelOffset[i] * dx, 0.0)) * Weight[i + offset];
+
+
+        sum += texture(BlurTex1, TexCoord + vec2( PixelOffset[i] * dx,  PixelOffset[i] * dy)) * Weight[i + offset];
+        sum += texture(BlurTex1, TexCoord + vec2( PixelOffset[i] * dx, -PixelOffset[i] * dy)) * Weight[i + offset];
+
+        sum += texture(BlurTex1, TexCoord + vec2(-PixelOffset[i] * dx, -PixelOffset[i] * dy)) * Weight[i + offset];
+        sum += texture(BlurTex1, TexCoord + vec2(-PixelOffset[i] * dx,  PixelOffset[i] * dy)) * Weight[i + offset];
+    }
+
+    BlurTwoColor = sum;
+}
+
+void passFourMK4() {
+    
+    float dy = 1.0 / (textureSize(BlurTex2, 0)).y;
+    float dx = 1.0 / (textureSize(BlurTex2, 0)).x;
+
+    int offset = 10 - bloomDiagonalBlur;
+
+    vec4 sum = texture(BlurTex2, TexCoord) * Weight[0 + offset];
+
+    for(int i = 0; i < bloomDiagonalBlur; i++) {
+
+        sum += texture(BlurTex2, TexCoord + vec2(0.0, PixelOffset[i] * dy)) * Weight[i + offset];
+        sum += texture(BlurTex2, TexCoord + vec2(PixelOffset[i] * dx, 0.0)) * Weight[i + offset];
+
+        sum += texture(BlurTex2, TexCoord - vec2(0.0, PixelOffset[i] * dy)) * Weight[i + offset];
+        sum += texture(BlurTex2, TexCoord - vec2(PixelOffset[i] * dx, 0.0)) * Weight[i + offset];
+
+        
+        sum += texture(BlurTex2, TexCoord + vec2( PixelOffset[i] * dx,  PixelOffset[i] * dy)) * Weight[i + offset];
+        sum += texture(BlurTex2, TexCoord + vec2( PixelOffset[i] * dx, -PixelOffset[i] * dy)) * Weight[i + offset];
+
+        sum += texture(BlurTex2, TexCoord + vec2(-PixelOffset[i] * dx, -PixelOffset[i] * dy)) * Weight[i + offset];
+        sum += texture(BlurTex2, TexCoord + vec2(-PixelOffset[i] * dx,  PixelOffset[i] * dy)) * Weight[i + offset];
+    }
+
+    BlurOneColor = sum;
+}
+
 
 // Apply HDR tone mapping to HdrTex, then combine with blured bright-pass filter
 // (reading from HdrTex & BlurTex1, writing to default buffer)
@@ -517,10 +649,15 @@ void main() {
         passTwo();
     }
     else if (PassNo == 3) {
-        passThree();
+//        passThree();
+//        passThreeMK2();
+        passThreeMK4();
     }
     else if (PassNo == 4) {
-        passFour();
+//        passFour();
+//        passFourMK2();
+//        passFourMK3();
+        passFourMK4();
     }
     else if (PassNo == 5) {
         passFive();

@@ -272,7 +272,7 @@ void SceneBasic_Uniform::initScene()
 			vec4(8.0f, 5.0f, 5.0f, 0.0f),
 			vec3(0.0f, 0.0f, 0.0f),
 			vec3(1.0f),
-			1.0f,
+			10.0f,
 			1.0f, 0.022f, 0.0019f,
 			30.0f, 45.0f
 		};
@@ -653,7 +653,9 @@ void SceneBasic_Uniform::setLights()
 	progs.at(currentProg)->setUniform("skyboxBrightness", skyboxBrightness);
 	progs.at(currentProg)->setUniform("Exposure", hdrExposure);
 	progs.at(currentProg)->setUniform("LuminanceThreshold", luminanceThreshold);
-	progs.at(currentProg)->setUniform("bloomMipmapLevel", bloomMipmapLevel);
+	progs.at(currentProg)->setUniform("bloomAxisBlur", bloomAxisBlur);
+	progs.at(currentProg)->setUniform("bloomDiagonalBlur", bloomDiagonalBlur);
+	//progs.at(currentProg)->setUniform("bloomMipmapLevel", bloomMipmapLevel);
 
 	for(int i = 0; i < lights.size(); i++)
 	{
@@ -692,16 +694,19 @@ void SceneBasic_Uniform::setLights()
 
 void SceneBasic_Uniform::setWeights()
 {
-	
+	std::string uName;
+	std::string index = "";
+
 	// Normalize the weights
 	for (int i = 0; i < 10; i++) 
 	{
-		std::stringstream uniName;
-		uniName << "Weight[" << i << "]";
+		index = std::to_string(i);
 
-		float val = weights[i] / sum;
+		uName = "Weight[" + index + "]";
 
-		progs.at(currentProg)->setUniform((uniName.str()).c_str(), val);
+		float value = weights[i] / sum;
+
+		progs.at(currentProg)->setUniform(uName.c_str(), value);
 	}
 }
 
@@ -754,44 +759,52 @@ void SceneBasic_Uniform::drawPassTwo()
 	
 	// Bind HDR frame buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, bufferTextures.hdr_FBO);
+	glDisable(GL_DEPTH_TEST);
 
 	//glBindBuffer(GL_FRAMEBUFFER, bufferTextures.blur_FBO);
 	//glBindBuffer(GL_FRAMEBUFFER, bufferTextures.hdr_FBO);
 
 
 	////// Prepare for rendering
-	glViewport(0, 0, bloomBufferWidth, bloomBufferHeight);
+	//glViewport(0, 0, bloomBufferWidth, bloomBufferHeight);
 	// Prepare for rendering to HDR frame buffer
 	//glClear(GL_COLOR_BUFFER_BIT);
 	//glDisable(GL_DEPTH_TEST);
 	//glClear(GL_COLOR_BUFFER_BIT);
 
 	// Set framebuffer colour data to blur one texture
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bufferTextures.blur_One, 0);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bufferTextures.blur_One, 0);
 
 	glActiveTexture(GL_TEXTURE8);
 	glBindTexture(GL_TEXTURE_2D, bufferTextures.hdr_Colour);
 
-	GLenum drawBuffers2[] = { GL_NONE, GL_NONE, GL_COLOR_ATTACHMENT1 };//, GL_COLOR_ATTACHMENT2 };
-	glDrawBuffers(3, drawBuffers2);
+	GLenum drawBuffers2[] = { GL_NONE, GL_NONE, GL_COLOR_ATTACHMENT1, GL_NONE };
+	glDrawBuffers(4, drawBuffers2);
 
 	
 
-	/*
+	
 	mat4 m = mat4(1.0f);
-
 	progs.at(currentProg)->setUniform("NormalMatrix", m);
 	progs.at(currentProg)->setUniform("ObjectModelMatrix", m);
 	progs.at(currentProg)->setUniform("ModelMatrix", m);
 	progs.at(currentProg)->setUniform("ModelViewMatrix", m);
 	progs.at(currentProg)->setUniform("ViewMatrix", m);
 	progs.at(currentProg)->setUniform("ViewProjectionMatrix", m);
-	progs.at(currentProg)->setUniform("MVP", m);*/
+	progs.at(currentProg)->setUniform("MVP", m);
 	setWeights();
+
+
+	// Read from blur texture one, using linear sampling for extra blur
+	glBindSampler(8, bufferTextures.linear_Sampler);
+
 
 	// Render to the full screen quad
 	glBindVertexArray(bufferTextures.frame_Quad);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+	
+	// Revert to nearest sampling
+	glBindSampler(8, bufferTextures.nearest_Sampler);
 
 
 	//// Revert to default framebuffer
@@ -801,7 +814,6 @@ void SceneBasic_Uniform::drawPassTwo()
 	//glDisable(GL_DEPTH_TEST);
 
 	//mat4 m = mat4(1.0f);
-
 	//progs.at(currentProg)->setUniform("NormalMatrix", m);
 	//progs.at(currentProg)->setUniform("ObjectModelMatrix", m);
 	//progs.at(currentProg)->setUniform("ModelMatrix", m);
@@ -840,7 +852,6 @@ void SceneBasic_Uniform::drawPassThree()
 	
 	
 	mat4 m = mat4(1.0f);
-
 	progs.at(currentProg)->setUniform("NormalMatrix", m);
 	progs.at(currentProg)->setUniform("ObjectModelMatrix", m);
 	progs.at(currentProg)->setUniform("ModelMatrix", m);
@@ -1134,9 +1145,13 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::Separator();
 		ImGui::SliderFloat("Bloom Threshold", &luminanceThreshold, 0.01f, 5.0f);
 		ImGui::Separator();
-		ImGui::SliderInt("Bloom Mipmap level", &bloomMipmapLevel, 0, 16);
+		ImGui::SliderInt("Bloom axis level", &bloomAxisBlur, 1, 10);
 		ImGui::Separator();
-		ImGui::Spacing();
+		ImGui::SliderInt("Bloom diagonal level", &bloomDiagonalBlur, 1, 10);
+		ImGui::Separator();
+		ImGui::Separator();
+		//ImGui::SliderInt("Bloom Mipmap level", &bloomMipmapLevel, 0, 16);
+		//ImGui::Spacing();
 
 		std::string id = "null";
 		for(int i = 0; i < lights.size(); i++)
