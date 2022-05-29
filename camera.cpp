@@ -20,7 +20,7 @@ Camera::Camera()
 	view = glm::mat4(1.0f);
 	projection = glm::perspective(fov, aspectRatio, nearPlane, farPlane);
 
-	movementSpeed = 0.05f;
+	movementSpeed = 0.25f;
 	rotationSpeed = 0.01f;
 	rotationRadius = 15.0f; 
 	horizontalRotationCap = 3.14159f;	//  pi  ==  half circle   == 180 degrees
@@ -122,7 +122,7 @@ void Camera::rotateAroundTarget(glm::vec2 rotationDirection)
 
 void Camera::tilt(GLfloat amount)
 {
-	view = glm::rotate(view, amount * rotationSpeed, glm::vec3(viewInverse[2].x, viewInverse[2].y, viewInverse[2].z));
+	view = glm::rotate(view, amount * rotationSpeed * 2, glm::vec3(viewInverse[2].x, viewInverse[2].y, viewInverse[2].z));
 
 	updateInverse();
 }

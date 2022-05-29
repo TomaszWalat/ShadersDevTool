@@ -19,14 +19,14 @@ void main() {
 
     vec3 colour = texture(SkyboxTex, TexCoord).rgb;
 
-        if(luminance(colour.rgb) > LuminanceThreshold) {
+    if(luminance(colour.rgb) > LuminanceThreshold) {
 
-            BlurOneColor = vec4(colour, 1.0);
-        }
-        else {
+        BlurOneColor = vec4(colour, 1.0);
+    }
+    else {
 
-            BlurOneColor = vec4(0.0);
-        }
+        BlurOneColor = vec4(0.0);
+    }
 
 //    // HDR tonemapping and gamma correction - disabled as tonemapping and gamma correction are take care of in the main shader (stage 5)
 //    colour = colour / (colour + vec3(1.0));

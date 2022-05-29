@@ -235,10 +235,22 @@
     <None Include="shader\pbrTextureShader.frag">
       <Filter>shader</Filter>
     </None>
-    <None Include="shader\hdrShader.vert">
+    <None Include="shader\lightShader.vert">
       <Filter>shader</Filter>
     </None>
-    <None Include="shader\hdrShader.frag">
+    <None Include="shader\lightShader.frag">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\hdrpbrTexturelessShader.frag">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\hdrpbrTexturelessShader.vert">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\hdrpbrTexturedShader.frag">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\hdrpbrTexturedShader.vert">
       <Filter>shader</Filter>
     </None>
   </ItemGroup>

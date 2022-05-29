@@ -46,8 +46,9 @@ private:
 
 	// --- Models --- //
     SkyBox skybox;
+	Sphere lightSphere;
 
-	// show floor 1
+	// show floor 1 (in the direction of negative Z)
     Plane floor_1;
     Cube metalCube;
     Cube box;
@@ -55,7 +56,45 @@ private:
     Teapot teapot;
     std::unique_ptr<ObjMesh> piggy;
     std::unique_ptr<ObjMesh> ogre;
+	
+	// show floor 2 (in the direction of positive X)
+    Plane floor_2; 
+	Sphere ball_1;
+	Sphere ball_2;
+	Sphere ball_3;
+	Sphere ball_4;
+	Sphere ball_5;
+	Sphere ball_6;
+	Sphere ball_7;
+	Sphere ball_8;
+	Sphere ball_9;
+	Sphere ball_10;
+	Sphere ball_11;
+	Sphere ball_12;
+	Sphere ball_13;
+	Sphere ball_14;
+	Sphere ball_15;
+	Sphere ball_16;
+	Sphere ball_17;
+	Sphere ball_18;
+	Sphere ball_19;
+	Sphere ball_20;
+	Sphere ball_21;
+	Sphere ball_22;
+	Sphere ball_23;
+	Sphere ball_24;
+	Sphere ball_25;
 
+	// show floor 3 (in the direction of positive Z)
+    Plane floor_3;
+	std::unique_ptr<ObjMesh> cow_1;
+	std::unique_ptr<ObjMesh> cow_2;
+	std::unique_ptr<ObjMesh> cow_3;
+	std::unique_ptr<ObjMesh> cow_4;
+	std::unique_ptr<ObjMesh> cow_5;
+
+	//// show floor 4 (in the direction of negative X)
+ //   Plane floor_4;
 
     void compile(); // Assembles and compiles shader programs from "shaders" vector
 
@@ -198,19 +237,19 @@ private:
 		////GLuint bambooWood_HeightMap =					Texture::loadTexture(groupPath_pbr + "bamboo-wood-semigloss/bamboo-wood-semigloss_height.png");
 		GLuint bambooWood_AmbientOcclusionMap =			Texture::loadTexture(groupPath_pbr + "bamboo-wood-semigloss/bamboo-wood-semigloss_ao.png");
 
-		/*GLuint mahoganyFloor_Albedo =					Texture::loadTexture(groupPath_pbr + "mahogany-floor/mahogany-floor_albedo.png");
+		GLuint mahoganyFloor_Albedo =					Texture::loadTexture(groupPath_pbr + "mahogany-floor/mahogany-floor_albedo.png");
 		GLuint mahoganyFloor_Roughness =				Texture::loadTexture(groupPath_pbr + "mahogany-floor/mahogany-floor_roughness.png");
 		GLuint mahoganyFloor_Metallic =					Texture::loadTexture(groupPath_pbr + "mahogany-floor/mahogany-floor_metallic.png");
 		GLuint mahoganyFloor_NormalMap =				Texture::loadTexture(groupPath_pbr + "mahogany-floor/mahogany-floor_normal.png");
 		GLuint mahoganyFloor_HeightMap =				Texture::loadTexture(groupPath_pbr + "mahogany-floor/mahogany-floor_height.png");
-		GLuint mahoganyFloor_AmbientOcclusionMap =		Texture::loadTexture(groupPath_pbr + "mahogany-floor/mahogany-floor_ao.png");*/
+		GLuint mahoganyFloor_AmbientOcclusionMap =		Texture::loadTexture(groupPath_pbr + "mahogany-floor/mahogany-floor_ao.png");
 
-		//GLuint patchyCement_Albedo =					Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_albedo.png");
-		//GLuint patchyCement_Roughness =					Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_roughness.png");
-		//GLuint patchyCement_Metallic =					Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_metallic.png");
-		//GLuint patchyCement_NormalMap =					Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_normal.png");
-		//////GLuint patchyCement_HeightMap =					Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_height.png");
-		//GLuint patchyCement_AmbientOcclusionMap =		Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_ao.png");
+		GLuint patchyCement_Albedo =					Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_albedo.png");
+		GLuint patchyCement_Roughness =					Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_roughness.png");
+		GLuint patchyCement_Metallic =					Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_metallic.png");
+		GLuint patchyCement_NormalMap =					Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_normal.png");
+		////GLuint patchyCement_HeightMap =					Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_height.png");
+		GLuint patchyCement_AmbientOcclusionMap =		Texture::loadTexture(groupPath_pbr + "patchy-cement/patchy-cement_ao.png");
 
 		GLuint redBrick_Albedo =						Texture::loadTexture(groupPath_pbr + "red-bricks/red-bricks_albedo.png");
 		GLuint redBrick_Roughness =						Texture::loadTexture(groupPath_pbr + "red-bricks/red-bricks_roughness.png");
@@ -219,12 +258,12 @@ private:
 		GLuint redBrick_HeightMap =						Texture::loadTexture(groupPath_pbr + "red-bricks/red-bricks_height.png");
 		GLuint redBrick_AmbientOcclusionMap =			Texture::loadTexture(groupPath_pbr + "red-bricks/red-bricks_ao.png");
 
-		//GLuint wornPaintedCement_Albedo =				Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_albedo.png");
-		//GLuint wornPaintedCement_Roughness =			Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_roughness.png");
-		//GLuint wornPaintedCement_Metallic =				Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_metallic.png");
-		//GLuint wornPaintedCement_NormalMap =			Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_normal.png");
-		//////GLuint wornPaintedCement_HeightMap =			Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_height.png");
-		//GLuint wornPaintedCement_AmbientOcclusionMap =	Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_ao.png");
+		GLuint wornPaintedCement_Albedo =				Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_albedo.png");
+		GLuint wornPaintedCement_Roughness =			Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_roughness.png");
+		GLuint wornPaintedCement_Metallic =				Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_metallic.png");
+		GLuint wornPaintedCement_NormalMap =			Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_normal.png");
+		////GLuint wornPaintedCement_HeightMap =			Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_height.png");
+		GLuint wornPaintedCement_AmbientOcclusionMap =	Texture::loadTexture(groupPath_pbr + "worn-painted-cement/worn-painted-cement_ao.png");
 
 		GLuint grayGraniteFlecks_Albedo =				Texture::loadTexture(groupPath_pbr + "gray-granite-flecks/gray-granite-flecks_albedo.png");
 		GLuint grayGraniteFlecks_Roughness =			Texture::loadTexture(groupPath_pbr + "gray-granite-flecks/gray-granite-flecks_roughness.png");

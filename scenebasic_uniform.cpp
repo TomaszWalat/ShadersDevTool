@@ -22,73 +22,50 @@ using glm::mat4;
 
 // Lists names and paths of all shaders / shader combinations (programs) to be compiled
 std::vector<std::vector<std::string>> shaders  {
-	//{"Basic Shader",
-	//	"shader/basicShader.vert",
-	//	"shader/basicShader.frag"},
 
-	//{"Basic Flat Shader",
-	//	"shader/basicFlatShader.vert",
-	//	"shader/basicFlatShader.frag"},
+	{"HDR PBR Textured Shader",
+		"shader/hdrpbrTexturedShader.vert",
+		"shader/hdrpbrTexturedShader.frag"},
+		
+	{"HDR PBR (Textureless) Shader",
+		"shader/hdrpbrTexturelessShader.vert",
+		"shader/hdrpbrTexturelessShader.frag"},
 
-	//{"Gouraud Shader",
-	//	"shader/gouraudShader.vert",
-	//	"shader/gouraudShader.frag"},
-
-	//{"Gouraud Flat Shader",
-	//	"shader/gouraudFlatShader.vert",
-	//	"shader/gouraudFlatShader.frag"},
-
-	//{"Phong Shader",
-	//	"shader/phongShader.vert",
-	//	"shader/phongShader.frag"},
-
-	//{"Phong Flat Shader",					// <---- KIND OF POINLESS
-	//	"shader/phongFlatShader.vert",
-	//	"shader/phongFlatShader.frag"},
-
-	//{"Blinn-Phong Flat Shader",
-	//	"shader/blinnPhongFlatShader.vert",
-	//	"shader/blinnPhongFlatShader.frag"},
-
-	//{"Blinn-Phong Shader",
-	//	"shader/blinnPhongShader.vert",
-	//	"shader/blinnPhongShader.frag"},
-
-
-	//{"Blinn-Phong Normal Map Shader",
-	//	"shader/blinnPhongShader_normalMap.vert",
-	//	"shader/blinnPhongShader_normalMap.frag"},
-
-
-	{"PBR + HDR Shader",
-		"shader/hdrShader.vert",
-		"shader/hdrShader.frag"},
-
-	{"PBR Texture Shader",
-		"shader/pbrTextureShader.vert",
-		"shader/pbrTextureShader.frag"},
-
-	{"PBR Shader",
-		"shader/pbrShader.vert",
-		"shader/pbrShader.frag"},
+	{"Light Shader",
+		"shader/lightShader.vert",
+		"shader/lightShader.frag"},
 
 	{"Skybox Shader",
 		"shader/skyboxShader.vert",
-		"shader/skyboxShader.frag"},
+		"shader/skyboxShader.frag"}
 
 };
 
 
 
 SceneBasic_Uniform::SceneBasic_Uniform() : skybox(100.0f),
+										   lightSphere(1.0f, 25, 25),
 										   floor_1(20.0f, 20.0f, 100, 100),
-										   metalCube(2),
-										   box(2),
-										   torus(0.7f, 0.3f, 25, 25),
-										   teapot(10, mat4(1.0f))
+												metalCube(2), box(2), torus(0.7f, 0.3f, 25, 25), teapot(10, mat4(1.0f)),
+										   floor_2(20.0f, 20.0f, 100, 100),
+												ball_1(1.0f, 100, 100),  ball_2(1.0f, 100, 100),  ball_3(1.0f, 100, 100),  ball_4(1.0f, 100, 100),  ball_5(1.0f, 100, 100),
+												ball_6(1.0f, 100, 100),  ball_7(1.0f, 100, 100),  ball_8(1.0f, 100, 100),  ball_9(1.0f, 100, 100),  ball_10(1.0f, 100, 100),
+												ball_11(1.0f, 100, 100), ball_12(1.0f, 100, 100), ball_13(1.0f, 100, 100), ball_14(1.0f, 100, 100), ball_15(1.0f, 100, 100),
+												ball_16(1.0f, 100, 100), ball_17(1.0f, 100, 100), ball_18(1.0f, 100, 100), ball_19(1.0f, 100, 100), ball_20(1.0f, 100, 100), 
+												ball_21(1.0f, 100, 100), ball_22(1.0f, 100, 100), ball_23(1.0f, 100, 100), ball_24(1.0f, 100, 100), ball_25(1.0f, 100, 100),
+										   floor_3(20.0f, 20.0f, 100, 100)
+										   //floor_4(20.0f, 20.0f, 100, 100)
+
 {
+	
 	piggy = ObjMesh::load("media/pig_triangulated.obj", true);
 	ogre = ObjMesh::load("media/bs_ears.obj", false, true);
+
+	cow_1 = ObjMesh::load("media/spot_triangulated.obj", true);
+	cow_2 = ObjMesh::load("media/spot_triangulated.obj", true);
+	cow_3 = ObjMesh::load("media/spot_triangulated.obj", true);
+	cow_4 = ObjMesh::load("media/spot_triangulated.obj", true);
+	cow_5 = ObjMesh::load("media/spot_triangulated.obj", true);
 }
 
 
@@ -126,72 +103,83 @@ void SceneBasic_Uniform::initScene()
 		floor_1.material.normalMap = textures.grayGraniteFlecks_NormalMap;
 		////floor_1.material.displacementMap = textures.grayGraniteFlecks_;
 		floor_1.material.ambientOcclusionMap = textures.grayGraniteFlecks_AmbientOcclusionMap;
+		{
+			//floor_1.material.albedoTex = textures.cement;
+			//floor_1.material.detailTex = textures.cement;
+			
+			metalCube.material.albedoTex = textures.rustedIron_Albedo;
+			metalCube.material.roughnessTex = textures.rustedIron_Roughness;
+			metalCube.material.metallicTex = textures.rustedIron_Metallic;
+			metalCube.material.normalMap = textures.rustedIron_NormalMap;
+			////metalCube.material.displacementMap = textures.rustedIron_;
+			metalCube.material.ambientOcclusionMap = textures.rustedIron_AmbientOcclusionMap;
+			
+			//metalCube.material.normalMap = textures.ripple_NormalMap;
+			//metalCube.material.displacementMap = textures.ripple_DisplacementMap;
+			//metalCube.material.ambientOcclusionMap = textures.ripple_AmbientOcclusionMap;
+			//metalCube.material.specularMap = textures.ripple_SpecularMap;
+			//metalCube.material.colour = vec4(1.0f);
 
-		//floor_1.material.albedoTex = textures.cement;
-		//floor_1.material.detailTex = textures.cement;
+			box.material.albedoTex = textures.redBrick_Albedo;
+			box.material.roughnessTex = textures.redBrick_Roughness;
+			box.material.metallicTex = textures.redBrick_Metallic;
+			box.material.normalMap = textures.redBrick_NormalMap;
+			//box.material.displacementMap = textures.redBrick_HeightMap;
+			box.material.ambientOcclusionMap = textures.redBrick_AmbientOcclusionMap;
+
+			//box.material.detailTex = textures.moss;
+			//box.material.alphaMap = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/brick/brick1.jpg");
+			//box.material.normalMap = textures.brick_NormalMap;
+			//box.material.displacementMap = textures.brick_DisplacementMap;
+			//box.material.ambientOcclusionMap = textures.brick_AmbientOcclusionMap;
+			//box.material.specularMap = textures.brick_SpecularMap;
+
+			torus.material.albedoTex = textures.bambooWood_Albedo;
+			torus.material.roughnessTex = textures.bambooWood_Albedo;
+			torus.material.metallicTex = textures.bambooWood_Albedo;
+			torus.material.normalMap = textures.bambooWood_Albedo;
+			//torus.material.displacementMap = textures.bambooWood_Albedo;
+			torus.material.ambientOcclusionMap = textures.bambooWood_Albedo;
+
+			//torus.material.detailTex = textures.wood_Albedo;
+
+			teapot.material.albedoTex = textures.copperScuffed_Albedo_Boosted;
+			teapot.material.roughnessTex = textures.copperScuffed_Roughness;
+			teapot.material.metallicTex = textures.copperScuffed_Metallic;
+			teapot.material.normalMap = textures.copperScuffed_NormalMap;
+			////teapot.material.displacementMap = textures.copperScuffed_;
+			teapot.material.ambientOcclusionMap = textures.copperScuffed_AmbientOcclusionMap;
+			teapot.material.alphaMap = textures.alienMetal_AmbientOcclusionMap;
+
+			//teapot.material.detailTex = textures.wood_Albedo;
+
+			piggy->material.albedoTex = textures.scuffedPlastic_Albedo;
+			piggy->material.roughnessTex = textures.scuffedPlastic_Roughness;
+			piggy->material.metallicTex = textures.scuffedPlastic_Metallic;
+			piggy->material.normalMap = textures.scuffedPlastic_NormalMap;
+			////piggy->material.displacementMap = textures.scuffedPlastic_;
+			piggy->material.ambientOcclusionMap = textures.scuffedPlastic_AmbientOcclusionMap;
+
+			//piggy->material.detailTex = textures.spotCow_Albedo;
+
+
+			ogre->material.albedoTex = textures.ogre_Albedo;
+			ogre->material.roughnessTex = textures.humanSkin_Roughness;
+			ogre->material.metallicTex = textures.humanSkin_Metallic;
+			ogre->material.normalMap = textures.ogre_NormalMap;
+			//ogre->material.displacementMap = textures.humanSkin_HeightMap;
+			ogre->material.ambientOcclusionMap = textures.ogre_AmbientOcclusionMap;
+		}
+
+
+		floor_2.material.albedoTex = textures.patchyCement_Albedo;
+		floor_2.material.roughnessTex = textures.patchyCement_Roughness;
+		floor_2.material.metallicTex = textures.patchyCement_Metallic;
+		floor_2.material.normalMap = textures.patchyCement_NormalMap;
+		////floor_2.material.displacementMap = textures.patchyCement_HeightMap;
+		floor_2.material.ambientOcclusionMap = textures.patchyCement_AmbientOcclusionMap;
 		
-		metalCube.material.albedoTex = textures.rustedIron_Albedo;
-		metalCube.material.roughnessTex = textures.rustedIron_Roughness;
-		metalCube.material.metallicTex = textures.rustedIron_Metallic;
-		metalCube.material.normalMap = textures.rustedIron_NormalMap;
-		////metalCube.material.displacementMap = textures.rustedIron_;
-		metalCube.material.ambientOcclusionMap = textures.rustedIron_AmbientOcclusionMap;
-		
-		//metalCube.material.normalMap = textures.ripple_NormalMap;
-		//metalCube.material.displacementMap = textures.ripple_DisplacementMap;
-		//metalCube.material.ambientOcclusionMap = textures.ripple_AmbientOcclusionMap;
-		//metalCube.material.specularMap = textures.ripple_SpecularMap;
-		//metalCube.material.colour = vec4(1.0f);
 
-		box.material.albedoTex = textures.redBrick_Albedo;
-		box.material.roughnessTex = textures.redBrick_Roughness;
-		box.material.metallicTex = textures.redBrick_Metallic;
-		box.material.normalMap = textures.redBrick_NormalMap;
-		//box.material.displacementMap = textures.redBrick_HeightMap;
-		box.material.ambientOcclusionMap = textures.redBrick_AmbientOcclusionMap;
-
-		//box.material.detailTex = textures.moss;
-		//box.material.alphaMap = Texture::loadTexture("../PrototypeShadersDevTool/media/texture/brick/brick1.jpg");
-		//box.material.normalMap = textures.brick_NormalMap;
-		//box.material.displacementMap = textures.brick_DisplacementMap;
-		//box.material.ambientOcclusionMap = textures.brick_AmbientOcclusionMap;
-		//box.material.specularMap = textures.brick_SpecularMap;
-
-		torus.material.albedoTex = textures.bambooWood_Albedo;
-		torus.material.roughnessTex = textures.bambooWood_Albedo;
-		torus.material.metallicTex = textures.bambooWood_Albedo;
-		torus.material.normalMap = textures.bambooWood_Albedo;
-		//torus.material.displacementMap = textures.bambooWood_Albedo;
-		torus.material.ambientOcclusionMap = textures.bambooWood_Albedo;
-
-		//torus.material.detailTex = textures.wood_Albedo;
-
-		teapot.material.albedoTex = textures.copperScuffed_Albedo_Boosted;
-		teapot.material.roughnessTex = textures.copperScuffed_Roughness;
-		teapot.material.metallicTex = textures.copperScuffed_Metallic;
-		teapot.material.normalMap = textures.copperScuffed_NormalMap;
-		////teapot.material.displacementMap = textures.copperScuffed_;
-		teapot.material.ambientOcclusionMap = textures.copperScuffed_AmbientOcclusionMap;
-		teapot.material.alphaMap = textures.alienMetal_AmbientOcclusionMap;
-
-		//teapot.material.detailTex = textures.wood_Albedo;
-
-		piggy->material.albedoTex = textures.scuffedPlastic_Albedo;
-		piggy->material.roughnessTex = textures.scuffedPlastic_Roughness;
-		piggy->material.metallicTex = textures.scuffedPlastic_Metallic;
-		piggy->material.normalMap = textures.scuffedPlastic_NormalMap;
-		////piggy->material.displacementMap = textures.scuffedPlastic_;
-		piggy->material.ambientOcclusionMap = textures.scuffedPlastic_AmbientOcclusionMap;
-
-		//piggy->material.detailTex = textures.spotCow_Albedo;
-
-
-		ogre->material.albedoTex = textures.ogre_Albedo;
-		ogre->material.roughnessTex = textures.humanSkin_Roughness;
-		ogre->material.metallicTex = textures.humanSkin_Metallic;
-		ogre->material.normalMap = textures.ogre_NormalMap;
-		//ogre->material.displacementMap = textures.humanSkin_HeightMap;
-		ogre->material.ambientOcclusionMap = textures.ogre_AmbientOcclusionMap;
 
 		//activate and bind texture
 		glActiveTexture(GL_TEXTURE0);
@@ -206,38 +194,123 @@ void SceneBasic_Uniform::initScene()
 
 		skybox.modelMatrix = m;
 
-		m = glm::translate(mat4(1.0f), vec3(0.0f, -1.0f, 0.0f));
+		m = glm::translate(mat4(1.0f), vec3(0.0f, -1.0f, -10.0f));
 		floor_1.modelMatrix = m;
+		
+			m = glm::translate(mat4(1.0f), vec3(-6.0f, 0.0f, -10.5f));
+			box.modelMatrix = m;
 
-		m = glm::translate(mat4(1.0f), vec3(-6.0f, 0.0f, -0.5f));
-		box.modelMatrix = m;
+			m = glm::scale(mat4(1.0f), vec3(2.0f));
+			m = glm::translate(m, vec3(-3.0f, 0.95f, -5.0f));
+			piggy->modelMatrix = m;
 
-		m = glm::scale(mat4(1.0f), vec3(2.0f));
-		m = glm::translate(m, vec3(-3.0f, 0.95f, 0.0f));
-		piggy->modelMatrix = m;
+			m = glm::rotate(mat4(1.0f), glm::radians(-45.0f), vec3(1.0f, 0.0f, 0.0f));
+			m = glm::rotate(m, glm::radians(-45.0f), vec3(0.0f, -1.0f, 1.0f));
+			//m = glm::translate(m, vec3(-5.0f, 2.5f, -5.0f));
+			m = glm::translate(m, vec3(-5.0f, 10.0f, -12.5f));
+			metalCube.modelMatrix = m;
 
-		m = glm::rotate(mat4(1.0f), glm::radians(-45.0f), vec3(1.0f, 0.0f, 0.0f));
-		m = glm::rotate(m, glm::radians(-45.0f), vec3(0.0f, -1.0f, 1.0f));
-		m = glm::translate(m, vec3(-5.0f, 2.5f, -5.0f));
-		metalCube.modelMatrix = m;
+			m = glm::rotate(mat4(1.0f), glm::radians(-45.0f), vec3(1.0f, 0.0f, 0.0f));
+			m = glm::translate(m, vec3(0.0f, 12.0f, -10.0f));
+			torus.modelMatrix = m;
 
-		m = glm::rotate(mat4(1.0f), glm::radians(-45.0f), vec3(1.0f, 0.0f, 0.0f));
-		m = glm::translate(m, vec3(0.0f, 2.0f, 0.0f));
-		torus.modelMatrix = m;
+			m = glm::scale(mat4(1.0f), vec3(2.0f));
+			m = glm::rotate(m, glm::radians(-45.0f), vec3(0.0f, 1.0f, 0.0f));
+			m = glm::translate(m, vec3(-3.5f, 2.0f, -8.0f));
+			ogre->modelMatrix = m;
 
-		m = glm::scale(mat4(1.0f), vec3(2.0f));
-		m = glm::rotate(m, glm::radians(-45.0f), vec3(0.0f, 1.0f, 0.0f));
-		m = glm::translate(m, vec3(0.0f, 2.0f, -3.0f));
-		ogre->modelMatrix = m;
+			m = glm::rotate(mat4(1.0f), glm::radians(135.0f), vec3(0.0f, 1.0f, 0.0f));
+			m = glm::translate(m, vec3(0.0f, -1.0f, 9.0f));
+			teapot.modelMatrix = m;
+		
 
-		m = glm::rotate(mat4(1.0f), glm::radians(135.0f), vec3(0.0f, 1.0f, 0.0f));
-		m = glm::translate(m, vec3(-6.5f, -1.0f, 3.5f));
-		teapot.modelMatrix = m;
+
+		m = glm::translate(mat4(1.0), vec3(20.0f, -1.0f, 10.0f));
+		floor_2.modelMatrix = m;
+		
+			m = glm::translate(mat4(1.0), vec3(27.0f, 0.0f, 3.0f));
+			ball_1.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(27.0f, 0.0f, 6.5f));
+			ball_2.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(27.0f, 0.0f, 10.0f));
+			ball_3.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(27.0f, 0.0f, 13.5f));
+			ball_4.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(27.0f, 0.0f, 17.0f));
+			ball_5.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(23.5f, 0.0f, 3.0f));
+			ball_6.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(23.5f, 0.0f, 6.5f));
+			ball_7.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(23.5f, 0.0f, 10.0f));
+			ball_8.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(23.5f, 0.0f, 13.5f));
+			ball_9.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(23.5f, 0.0f, 17.0f));
+			ball_10.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(20.0f, 0.0f, 3.0f));
+			ball_11.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(20.0f, 0.0f, 6.5f));
+			ball_12.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(20.0f, 0.0f, 10.0f));
+			ball_13.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(20.0f, 0.0f, 13.5f));
+			ball_14.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(20.0f, 0.0f, 17.0f));
+			ball_15.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(16.5f, 0.0f, 3.0f));
+			ball_16.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(16.5f, 0.0f, 6.5f));
+			ball_17.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(16.5f, 0.0f, 10.0f));
+			ball_18.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(16.5f, 0.0f, 13.5f));
+			ball_19.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(16.5f, 0.0f, 17.0f));
+			ball_20.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(13.0f, 0.0f, 3.0f));
+			ball_21.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(13.0f, 0.0f, 6.5f));
+			ball_22.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(13.0f, 0.0f, 10.0f));
+			ball_23.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(13.0f, 0.0f, 13.5f));
+			ball_24.modelMatrix = m;
+
+			m = glm::translate(mat4(1.0), vec3(13.0f, 0.0f, 17.0f));
+			ball_25.modelMatrix = m;
+		
+		
+		m = glm::translate(mat4(1.0), vec3(-20.0f, -1.0f, 10.0f));
+		floor_3.modelMatrix = m;
 	}
 
 	// Setting object material properties
 	{
-		floor_1.material.roughness = 1.0f;
+		/*floor_1.material.roughness = 1.0f;
 		floor_1.material.metallic = 0.0f;
 		
 		box.material.roughness = 1.0f;
@@ -259,7 +332,136 @@ void SceneBasic_Uniform::initScene()
 
 		teapot.material.roughness = 1.0f;
 		teapot.material.metallic = 1.0f;
-		teapot.material.colour = vec4(1.0f);
+		teapot.material.colour = vec4(1.0f);*/
+
+		//floor_2.material.roughness = 1.0f;
+		//floor_2.material.metallic = 0.0f;
+		
+			ball_1.material.roughness = 1.0f;
+			ball_1.material.metallic = 0.0f;
+			ball_1.material.ao = 1.0f;
+			ball_1.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+
+			//ball_2.material.roughness = 0.75f;
+			//ball_2.material.metallic = 0.0f;
+			//ball_2.material.ao = 1.0f;
+			//ball_2.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			
+			ball_3.material.roughness = 0.5f;
+			ball_3.material.metallic = 0.0f;
+			ball_3.material.ao = 1.0f;
+			ball_3.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			
+			//ball_4.material.roughness = 0.25f;
+			//ball_4.material.metallic = 0.0f;
+			//ball_4.material.ao = 1.0f;
+			//ball_4.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			
+			ball_5.material.roughness = 0.05f;
+			ball_5.material.metallic = 0.0f;
+			ball_5.material.ao = 1.0f;
+			ball_5.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			
+			//ball_6.material.roughness = 1.0f;
+			//ball_6.material.metallic = 0.25f;
+			//ball_6.material.ao = 1.0f;
+			//ball_6.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			//
+			//ball_7.material.roughness = 0.75f;
+			//ball_7.material.metallic = 0.25f;
+			//ball_7.material.ao = 1.0f;
+			//ball_7.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			//
+			//ball_8.material.roughness = 0.5f;
+			//ball_8.material.metallic = 0.25f;
+			//ball_8.material.ao = 1.0f;
+			//ball_8.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			//
+			//ball_9.material.roughness = 0.25f;
+			//ball_9.material.metallic = 0.25f;
+			//ball_9.material.ao = 1.0f;
+			//ball_9.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			//
+			//ball_10.material.roughness = 0.05f;
+			//ball_10.material.metallic = 0.25f;
+			//ball_10.material.ao = 1.0f;
+			//ball_10.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			
+			ball_11.material.roughness = 1.0f;
+			ball_11.material.metallic = 0.5f;
+			ball_11.material.ao = 1.0f;
+			ball_11.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			//
+			//ball_12.material.roughness = 0.75f;
+			//ball_12.material.metallic = 0.5f;
+			//ball_12.material.ao = 1.0f;
+			//ball_12.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			
+			ball_13.material.roughness = 0.5f;
+			ball_13.material.metallic = 0.5f;
+			ball_13.material.ao = 1.0f;
+			ball_13.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			//
+			//ball_14.material.roughness = 0.25f;
+			//ball_14.material.metallic = 0.5f;
+			//ball_14.material.ao = 1.0f;
+			//ball_14.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			
+			ball_15.material.roughness = 0.05f;
+			ball_15.material.metallic = 0.5f;
+			ball_15.material.ao = 1.0f;
+			ball_15.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			
+			//ball_16.material.roughness = 1.0f;
+			//ball_16.material.metallic = 0.75f;
+			//ball_16.material.ao = 1.0f;
+			//ball_16.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			//
+			//ball_17.material.roughness = 0.75f;
+			//ball_17.material.metallic = 0.75f;
+			//ball_17.material.ao = 1.0f;
+			//ball_17.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			//
+			//ball_18.material.roughness = 0.5f;
+			//ball_18.material.metallic = 0.75f;
+			//ball_18.material.ao = 1.0f;
+			//ball_18.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			//
+			//ball_19.material.roughness = 0.25f;
+			//ball_19.material.metallic = 0.75f;
+			//ball_19.material.ao = 1.0f;
+			//ball_19.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			//
+			//ball_20.material.roughness = 0.05f;
+			//ball_20.material.metallic = 0.75f;
+			//ball_20.material.ao = 1.0f;
+			//ball_20.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			
+			ball_21.material.roughness = 1.0f;
+			ball_21.material.metallic = 1.0f;
+			ball_21.material.ao = 1.0f;
+			ball_21.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			
+			//ball_22.material.roughness = 0.75f;
+			//ball_22.material.metallic = 1.0f;
+			//ball_22.material.ao = 1.0f;
+			//ball_22.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			
+			ball_23.material.roughness = 0.5f;
+			ball_23.material.metallic = 1.0f;
+			ball_23.material.ao = 1.0f;
+			ball_23.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			
+			//ball_24.material.roughness = 0.25f;
+			//ball_24.material.metallic = 1.0f;
+			//ball_24.material.ao = 1.0f;
+			//ball_24.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			
+			ball_25.material.roughness = 0.05f;
+			ball_25.material.metallic = 1.0f;
+			ball_25.material.ao = 1.0f;
+			ball_25.material.colour = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+		
 	}
 
 	// Setting up lights
@@ -274,7 +476,7 @@ void SceneBasic_Uniform::initScene()
 		};
 		lights.push_back(L1); 
 
-		LightInfo L2 = { // Spot - 1
+		LightInfo L2 = { // Spot - 1 (floor 1)
 			vec4(-5.0f, 5.0f, 0.0f, 1.0f),
 			vec3(0.0f, -1.0f, 0.0f),
 			vec3(1.0f, 0.0f, 0.0f), // Red
@@ -284,7 +486,7 @@ void SceneBasic_Uniform::initScene()
 		};
 		lights.push_back(L2); 
 
-		LightInfo L3 = { // Spot - 2
+		LightInfo L3 = { // Spot - 2 (floor 1)
 			vec4(0.0f, 8.0f, -4.5f, 1.0f),
 			vec3(0.0f, -1.0f, 0.0f),
 			vec3(1.0f),
@@ -294,7 +496,7 @@ void SceneBasic_Uniform::initScene()
 		};
 		lights.push_back(L3);
 
-		LightInfo L4 = { // Spot - 3
+		LightInfo L4 = { // Spot - 3 (floor 1)
 			vec4(-6.0f, 6.0f, -6.0f, 1.0f),
 			vec3(0.0f, -1.0f, 0.0f),
 			vec3(0.0f, 0.0f, 1.0f), // Blue
@@ -303,7 +505,57 @@ void SceneBasic_Uniform::initScene()
 			30.0f, 45.0f
 		};
 		lights.push_back(L4);
-
+		/*
+		LightInfo L5 = { // Point - 1 (floor 2)
+			vec4(-6.0f, 6.0f, -6.0f, 1.0f),
+			vec3(0.0f, -1.0f, 0.0f),
+			vec3(0.0f, 0.0f, 1.0f), // Blue
+			1.0f,
+			1.0f, 0.022f, 0.0019f,
+			30.0f, 45.0f
+		};
+		lights.push_back(L4);
+		
+		LightInfo L6 = { // Point - 2 (floor 2)
+			vec4(-6.0f, 6.0f, -6.0f, 1.0f),
+			vec3(0.0f, -1.0f, 0.0f),
+			vec3(0.0f, 0.0f, 1.0f), // Blue
+			1.0f,
+			1.0f, 0.022f, 0.0019f,
+			30.0f, 45.0f
+		};
+		lights.push_back(L4);
+		
+		LightInfo L7 = { // Point - 3 (floor 2)
+			vec4(-6.0f, 6.0f, -6.0f, 1.0f),
+			vec3(0.0f, -1.0f, 0.0f),
+			vec3(0.0f, 0.0f, 1.0f), // Blue
+			1.0f,
+			1.0f, 0.022f, 0.0019f,
+			30.0f, 45.0f
+		};
+		lights.push_back(L4);
+		
+		LightInfo L8 = { // Point - 4 (floor 2)
+			vec4(-6.0f, 6.0f, -6.0f, 1.0f),
+			vec3(0.0f, -1.0f, 0.0f),
+			vec3(0.0f, 0.0f, 1.0f), // Blue
+			1.0f,
+			1.0f, 0.022f, 0.0019f,
+			30.0f, 45.0f
+		};
+		lights.push_back(L4);
+		
+		LightInfo L9 = { // Point - 5 (floor 3)
+			vec4(-6.0f, 6.0f, -6.0f, 1.0f),
+			vec3(0.0f, -1.0f, 0.0f),
+			vec3(0.0f, 0.0f, 1.0f), // Blue
+			1.0f,
+			1.0f, 0.022f, 0.0019f,
+			30.0f, 45.0f
+		};
+		lights.push_back(L4);
+		*/
 	}
 
 
@@ -582,36 +834,43 @@ void SceneBasic_Uniform::setMeshUniforms(TriangleMesh* mesh)
 	if(!usePBRTextures)
 	{
 		// Set object material properties
-		progs.at(currentProg)->setUniform("material.colour", mesh->material.colour);
+		progs.at(currentProg)->setUniform("material.albedo", mesh->material.colour);
 		progs.at(currentProg)->setUniform("material.roughness", mesh->material.roughness);
 		progs.at(currentProg)->setUniform("material.metallic", mesh->material.metallic);
-	}
+		progs.at(currentProg)->setUniform("material.ao", mesh->material.ao);
 
-	// Set textures
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, mesh->material.albedoTex);
+		//// Set object material properties
+		//progs.at(currentProg)->setUniform("material.albedo", mesh->material.colour * 255.0f);
+		//progs.at(currentProg)->setUniform("material.roughness", mesh->material.roughness * 255.0f);
+		//progs.at(currentProg)->setUniform("material.metallic", mesh->material.metallic * 255.0f);
+		//progs.at(currentProg)->setUniform("material.ao", mesh->material.ao * 255.0f);
+	}
 
 	// Textures only used if textured based PBR is being used
 	if(usePBRTextures)
 	{
+		// Set textures
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, mesh->material.albedoTex);
+
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, mesh->material.roughnessTex);
 
 		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, mesh->material.metallicTex);
+
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, mesh->material.normalMap);
+		
+		//glActiveTexture(GL_TEXTURE5);
+		//glBindTexture(GL_TEXTURE_2D, mesh->material.displacementMap);
+
+		glActiveTexture(GL_TEXTURE5);
+		glBindTexture(GL_TEXTURE_2D, mesh->material.ambientOcclusionMap);
+
+		glActiveTexture(GL_TEXTURE6);
+		glBindTexture(GL_TEXTURE_2D, mesh->material.alphaMap);
 	}
-
-	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, mesh->material.normalMap);
-	
-	//glActiveTexture(GL_TEXTURE5);
-	//glBindTexture(GL_TEXTURE_2D, mesh->material.displacementMap);
-
-	glActiveTexture(GL_TEXTURE5);
-	glBindTexture(GL_TEXTURE_2D, mesh->material.ambientOcclusionMap);
-
-	glActiveTexture(GL_TEXTURE6);
-	glBindTexture(GL_TEXTURE_2D, mesh->material.alphaMap);
 
 }
 
@@ -663,6 +922,7 @@ void SceneBasic_Uniform::setLights()
 
 		uName = "lights[" + id + "].cutoffOuter";
 		progs.at(currentProg)->setUniform(uName.c_str(), glm::radians(lights.at(i).cutoffOuter));
+		//progs.at(currentProg)->setUniform(uName.c_str(), glm::radians(67.5f - lights.at(i).cutoffOuter));
 	}
 }
 
@@ -827,6 +1087,9 @@ void SceneBasic_Uniform::drawScene()
 {
 	std::string currentShader = currentProg;
 
+	
+	//changeShader("HDR + PBR (Textureless) Shader");
+
 	setMatrices();
 	setLights();
 	
@@ -850,7 +1113,101 @@ void SceneBasic_Uniform::drawScene()
 
 	setMeshUniforms(ogre.get());
 	ogre->render();
-	
+
+
+	setMeshUniforms(&floor_2);
+	floor_2.render();
+
+
+	changeShader("HDR PBR (Textureless) Shader");
+	usePBRTextures = false;
+
+	//// bind skybox textures
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.material.skyboxCubeMap);
+	//glActiveTexture(GL_TEXTURE7);
+	//glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.material.skyboxEnvCubeMap);
+
+	setMatrices();
+	setLights();
+
+	setMeshUniforms(&ball_1);
+	ball_1.render();
+	setMeshUniforms(&ball_2);
+	ball_2.render();
+	setMeshUniforms(&ball_3);
+	ball_3.render();
+	setMeshUniforms(&ball_4);
+	ball_4.render();
+	setMeshUniforms(&ball_5);
+	ball_5.render();
+	setMeshUniforms(&ball_6);
+	ball_6.render();
+	setMeshUniforms(&ball_7);
+	ball_7.render();
+	setMeshUniforms(&ball_8);
+	ball_8.render();
+	setMeshUniforms(&ball_9);
+	ball_9.render();
+	setMeshUniforms(&ball_10);
+	ball_10.render();
+	setMeshUniforms(&ball_11);
+	ball_11.render();
+	setMeshUniforms(&ball_12);
+	ball_12.render();
+	setMeshUniforms(&ball_13);
+	ball_13.render();
+	setMeshUniforms(&ball_14);
+	ball_14.render();
+	setMeshUniforms(&ball_15);
+	ball_15.render();
+	setMeshUniforms(&ball_16);
+	ball_16.render();
+	setMeshUniforms(&ball_17);
+	ball_17.render();
+	setMeshUniforms(&ball_18);
+	ball_18.render();
+	setMeshUniforms(&ball_19);
+	ball_19.render();
+	setMeshUniforms(&ball_20);
+	ball_20.render();
+	setMeshUniforms(&ball_21);
+	ball_21.render();
+	setMeshUniforms(&ball_22);
+	ball_22.render();
+	setMeshUniforms(&ball_23);
+	ball_23.render();
+	setMeshUniforms(&ball_24);
+	ball_24.render();
+	setMeshUniforms(&ball_25);
+	ball_25.render();
+
+	usePBRTextures = true;
+
+
+	changeShader("Light Shader");
+	setMatrices();
+	mat4 m = mat4(1.0);
+	progs.at(currentProg)->setUniform("LuminanceThreshold", luminanceThreshold);
+
+	for(int i = 0; i < lights.size(); i++)
+	{
+		m[3] = lights[i].position;
+		m[3][3] = 1.0f;
+
+		progs.at(currentProg)->setUniform("ObjectModelMatrix", m);
+		progs.at(currentProg)->setUniform("LightType", lights[i].position.w);
+		progs.at(currentProg)->setUniform("LightColour", lights[i].colour);
+		progs.at(currentProg)->setUniform("Brightness", lights[i].brightness);
+		progs.at(currentProg)->setUniform("Direction", lights[i].direction);
+		progs.at(currentProg)->setUniform("CutoffInner", glm::radians(lights[i].cutoffInner));
+		progs.at(currentProg)->setUniform("CutoffOuter", glm::radians(lights[i].cutoffOuter));
+
+		lightSphere.render();
+	}
+
+
+
 	changeShader("Skybox Shader");
 	progs.at(currentProg)->setUniform("ViewProjectionMatrix", (cam->getProjection() * cam->getView() * skyboxRotate180Y));
 	skybox.render();
@@ -1000,8 +1357,8 @@ void SceneBasic_Uniform::drawGUI()
 				ImGui::Spacing();
 
 				ImGui::Text("Cone cutoff");
-				ImGui::SliderFloat(("Inner (Phi)##L"+ id).c_str(), &lights.at(i).cutoffInner, 0.0f, 67.5f);
-				ImGui::SliderFloat(("Outer (Gamma)##L"+ id).c_str(), &lights.at(i).cutoffOuter, 0.0f, 67.5f);
+				ImGui::SliderFloat(("Inner (Phi)##L"+ id).c_str(), &lights.at(i).cutoffInner, 0.0f, 67.4f);
+				ImGui::SliderFloat(("Outer (Gamma)##L"+ id).c_str(), &lights.at(i).cutoffOuter, 0.1f, 67.5f);
 			}
 			ImGui::PopID();
 		}
@@ -1035,8 +1392,8 @@ void SceneBasic_Uniform::render()
 
 	drawGUI();
 
-	if(currentProg == "PBR + HDR Shader")
-	{
+	/*if(currentProg == "HDR + PBR Textured Shader")
+	{*/
 		drawPassOne();
 		
 		computeLogAvgLuminance();
@@ -1046,15 +1403,15 @@ void SceneBasic_Uniform::render()
 		drawPassThree();
 
 		drawPassFour();
-	}
-	else
-	{
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glEnable(GL_DEPTH_TEST);
+	//}
+	//else
+	//{
+	//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//	glEnable(GL_DEPTH_TEST);
 
-		drawScene();
-	}
+	//	drawScene();
+	//}
 }
 
 

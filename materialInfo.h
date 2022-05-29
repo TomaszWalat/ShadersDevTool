@@ -5,11 +5,13 @@
 
 struct MaterialInfo
 {
-	glm::vec4 colour = glm::vec4(0.0f); // object base colour, set alpha to 0 to discard
+	// For materials not dictated by textures
+	glm::vec4 colour = glm::vec4(0.0f); // object colour
+	GLfloat roughness = 0.1f;				 // roughness factor
+	GLfloat metallic = 0.0f;		         // metallic factor
+	GLfloat ao = 1.0f;				         // ambient occlusion factor
 
-	GLfloat roughness = 0.1f;		 // ambient light reflectivity factor
-	GLfloat metallic = 0.0f;		 // diffuse light reflectivity factor
-	
+	// For materials dictated by textures
 	GLuint albedoTex;			// base texture (colour info)
 	GLuint detailTex;			// for up close detail texture - currently unused
 	GLuint roughnessTex;		// for dictating material roughness value
@@ -20,6 +22,7 @@ struct MaterialInfo
 	GLuint alphaMap;			// for fragment discarding
 	GLuint specularMap;			// for specular highlight (lighting) augmentation - currently unused
 	GLuint ambientOcclusionMap; // for ambient lighting detail (darkening in crevices) - currently unused
+
 
 	GLuint skyboxCubeMap;		// for skybox objects only - texture that's mapped onto the skybox
 	GLuint skyboxEnvCubeMap;	// for skybox objects only - texture that's used for environment lighting

@@ -171,14 +171,14 @@ vec3 computeMicrofacetModel(in int lightNo, in vec3 F0, in vec3 n, in vec3 v) {
 
     if(l != vec3(0.0)) // if light direcction or position.w == 0, light is not a spotlight
     {
-        vec3 lDirection = (ModelViewMatrix * vec4(lights[lightNo].direction, 0.0)).xyz; // Light direction in world space
+        vec3 lDirection = (ModelViewMatrix * normalize(vec4(lights[lightNo].direction, 0.0))).xyz; // Light direction in world space
 
         float theta = dot(s, lDirection); // angle between light ray (from light to fragment)
-        float angle = acos(theta); // real angle
 
-        float epsilon = lights[lightNo].cutoffInner - lights[lightNo].cutoffOuter; // fade out angle
+        float epsilon = lights[lightNo].cutoffOuter - lights[lightNo].cutoffInner; // fade out angle
+//        float epsilon = lights[lightNo].cutoffInner - lights[lightNo].cutoffOuter; // fade out angle
 
-        intensity = clamp((angle - lights[lightNo].cutoffOuter) / epsilon, 0.0, 1.0); // intensity = 1.0 inside the inner cone
+        intensity = clamp((theta - lights[lightNo].cutoffOuter) / epsilon, 0.0, 1.0); // intensity = 1.0 inside the inner cone
     }
     
     vec3 radiance = lights[lightNo].colour * lights[lightNo].brightness * intensity * attenuation;
@@ -209,7 +209,7 @@ float luminance(vec3 colour) {
 
 
 
-// Computes shading and stores result in high-res framebuffer (writing to HdrTex)
+// Computes shading and stores result in high-res framebuffer (writing to HDR tex and Blur one tex)
 void passOne() {
     
     vec3 Lo = vec3(0.0);
@@ -257,7 +257,8 @@ void passOne() {
     vec3 r = reflect(-rView, rNormal); // transpose to get the inverse of ViewMatrix
     vec3 reflection = texture(Skybox, r).rgb; // skybox reflection colour
 
-    vec3 reflectionColour = (reflection * (1.0 - material.roughness) * material.metallic);
+    vec3 reflectionColour = (reflection * material.metallic) * (1.0 - material.roughness);
+//    vec3 reflectionColour = (reflection * material.metallic) * (material.albedo.rgb * material.roughness);
 
     vec3 environmentLight = texture(EnvironmentMap, mat3(transpose(SkyboxRotationMatrix)) * n).rgb;
 
@@ -286,7 +287,6 @@ void passOne() {
 
     HdrColor = vec4(colour, 1.0);
 }
-
 
 
 // --- Original blur functions (horizontal then vertical) --- //
@@ -480,7 +480,6 @@ void passThree_v4() {
 
     BlurOneColor = sum;
 }
-
 
 
 // Apply HDR tone mapping to HdrTex, then combine with blured bright-pass filter
