@@ -208,31 +208,7 @@
     <None Include="shader\skyboxShader.vert">
       <Filter>shader</Filter>
     </None>
-    <None Include="shader\blinnPhongShader.frag">
-      <Filter>shader</Filter>
-    </None>
-    <None Include="shader\blinnPhongShader.vert">
-      <Filter>shader</Filter>
-    </None>
-    <None Include="shader\blinnPhongShader_normalMap.frag">
-      <Filter>shader</Filter>
-    </None>
-    <None Include="shader\blinnPhongShader_normalMap.vert">
-      <Filter>shader</Filter>
-    </None>
     <None Include="shader\skyboxShader.frag">
-      <Filter>shader</Filter>
-    </None>
-    <None Include="shader\pbrShader.vert">
-      <Filter>shader</Filter>
-    </None>
-    <None Include="shader\pbrShader.frag">
-      <Filter>shader</Filter>
-    </None>
-    <None Include="shader\pbrTextureShader.vert">
-      <Filter>shader</Filter>
-    </None>
-    <None Include="shader\pbrTextureShader.frag">
       <Filter>shader</Filter>
     </None>
     <None Include="shader\lightShader.vert">

@@ -211,20 +211,12 @@
     <ClInclude Include="sceneObject.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="shader\blinnPhongShader.frag" />
-    <None Include="shader\blinnPhongShader.vert" />
-    <None Include="shader\blinnPhongShader_normalMap.frag" />
-    <None Include="shader\blinnPhongShader_normalMap.vert" />
     <None Include="shader\hdrpbrTexturelessShader.frag" />
     <None Include="shader\hdrpbrTexturelessShader.vert" />
     <None Include="shader\hdrpbrTexturedShader.frag" />
     <None Include="shader\hdrpbrTexturedShader.vert" />
     <None Include="shader\lightShader.frag" />
     <None Include="shader\lightShader.vert" />
-    <None Include="shader\pbrShader.frag" />
-    <None Include="shader\pbrShader.vert" />
-    <None Include="shader\pbrTextureShader.frag" />
-    <None Include="shader\pbrTextureShader.vert" />
     <None Include="shader\skyboxShader.frag" />
     <None Include="shader\skyboxShader.vert" />
   </ItemGroup>

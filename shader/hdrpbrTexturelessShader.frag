@@ -9,7 +9,6 @@ in vec2 TexCoord;
 layout (location = 0) out vec4 FragColor;
 layout (location = 1) out vec4 HdrColor;
 layout (location = 2) out vec4 BlurOneColor;
-//layout (location = 3) out vec4 BlurTwoColor;
 
 
 // --- Textures (for reading) --- //
@@ -17,52 +16,17 @@ layout (location = 2) out vec4 BlurOneColor;
 // Skybox textures
 layout (binding = 0) uniform samplerCube Skybox;
 layout (binding = 7) uniform samplerCube EnvironmentMap; // Blury - gives a sense of lighting strength
-//
-//// Object material textures
-//layout (binding = 1) uniform sampler2D AlbedoTex;
-//layout (binding = 2) uniform sampler2D RoughnessTex;
-//layout (binding = 3) uniform sampler2D MetallicTex;
-//layout (binding = 4) uniform sampler2D NormalMap;
-//layout (binding = 5) uniform sampler2D AmbientOcclusionMap;
-////layout (binding = 6) uniform sampler2D AlphaTex;
-//
-//// HDR and Bloom textures
-//layout (binding = 8) uniform sampler2D HdrTex;
-//layout (binding = 9) uniform sampler2D BlurTex1;
-//layout (binding = 10) uniform sampler2D BlurTex2;
 
 
 // --- Uniforms --- //
-//
-//// Render pass number
-//uniform int PassNo; 
-//
-//// HDR tone mapping conversion matrices
-//// XYZ/RGB conversion matrices from:
-//// http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
-//uniform mat3 rgb2xyz = mat3(0.4124564, 0.2126729, 0.0193339,
-//                            0.3575761, 0.7151522, 0.1191920,
-//                            0.1804375, 0.0721750, 0.9503041);
-//
-//uniform mat3 xyz2rgb = mat3(3.2404542, -0.9692660, 0.0556434,
-//                            -1.5371385, 1.8760108, -0.2040259,
-//                            -0.4985314, 0.0415560, 1.0572252 );
-//
 const float Pi = 3.14159265358979323846; // For PBR light calculations
 
 // HDR settings
 uniform bool DoHDRToneMapping;
-//uniform float White = 0.928; // For balancing the colour of HDR lighting
-//uniform float AverageLumen; // Scene average brightness
 uniform float Exposure;
 
 // Bloom settings
-//uniform bool DoBloom;
 uniform float LuminanceThreshold;
-//uniform int BloomOneStrength;
-//uniform int BloomTwoStrength;
-//uniform float PixelOffset[10] = float[](0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
-//uniform float Weight[10];
 
 uniform float GammaCorrection;
 
@@ -93,7 +57,7 @@ uniform struct LightInfo {
 	float cutoffInner; // Phi
 	float cutoffOuter; // Gamma
 
-} lights[4];
+} lights[6];
 
 uniform struct MaterialInfo {
 
@@ -214,28 +178,10 @@ void main() {
     
     vec3 Lo = vec3(0.0);
 
-    // Get textures' pixel data
-//    material.albedo = pow(material.albedo, vec4(2.2));
-//    material.ao = 1.0;
-//    vec4 alphaMap = texture(AlphaTex, TexCoord);
-    
     // view vector
     vec3 v = normalize(-Position).xyz; 
 
-
-//    // Discard fragment based on alpah map
-//    if(alphaMap.a < AlphaDiscard)
-//    {
-//        discard;
-//    }
-
     vec3 n = normalize(Normal);
-//    // Invert face normals if pointing away from camera
-//    if(!gl_FrontFacing)
-//    {
-//        n = -Normal;
-//    }
-
 
     // Calculate surface base reflectivity
     vec3 F0 = vec3(0.04);
@@ -243,7 +189,7 @@ void main() {
 //    F0 = mix(F0, material.albedo.rgb, (1.0 - material.metallic));
 
     // Compute lighting
-    for(int i = 0; i < 4; i++)
+    for(int i = 0; i < 6; i++)
     {
         Lo += computeMicrofacetModel(i, F0, n, v);
     }
@@ -254,77 +200,31 @@ void main() {
 
     vec3 r = reflect(-rView, rNormal); 
     vec3 reflection = texture(Skybox, r).rgb; // skybox reflection colour
-//    vec3 reflection = vec3(0.0, 1.0, 0.0); // skybox reflection colour
 
-//    vec3 reflectionColour = (reflection * material.metallic);
-//    vec3 reflectionColour = reflection * material.albedo.rgb * (material.metallic);// * (material.albedo.rgb * (1.0 - material.roughness));
-//    vec3 reflectionColour = reflection * material.metallic * (1.0 - material.roughness);// * (material.albedo.rgb * (1.0 - material.roughness));
-
-    vec3 environment = texture(EnvironmentMap, mat3(transpose(SkyboxRotationMatrix)) * n).rgb;// * lights[0].brightness;
+    vec3 environment = texture(EnvironmentMap, mat3(transpose(SkyboxRotationMatrix)) * n).rgb; // environment lighting
 
 
-//    vec3 environmentLighting = environmentLight * material.albedo.rgb * lights[0].brightness;
-//    vec3 environmentLighting = environmentLight * reflectionColour;// * lights[0].brightness;
+    // ambient lighting - based on environment (skybox)
+    vec3 kS = fresnelReflection(n, v, F0); // light reflected (percentage)
 
-//    environmentLighting = vec3(0.0);
+    vec3 kD = (1.0 - kS) * (1.0 - material.metallic); // light refracted (percentage). Absorbed by metals
 
+    vec3 irradiance = environment * material.albedo.rgb; // combines skybox brightness with base colour
 
+    vec3 ambient = (kD * irradiance) * material.ao; // ambient lighting
 
-    // half vector
-    vec3 h = normalize(v + -r);
+    vec3 reflectionColour = (reflection * material.albedo.rgb) * (1.0 - material.roughness); // calculate strength of reflection
 
-    vec3 reflection_kS = fresnelReflection(h, v, F0);
-//
-//    // Cook-Torrance BRDF
-//    float D = normalDistribution(n, h);
-//    float G = geometryShadowing(n, v, r);
-//    vec3  F = fresnelReflection(h, v, F0);
-//
-//    // specular
-//    vec3 reflection_Specular = (D * G * F) / (4 * max(dot(n, v), 0.0) * max(dot(n, -r), 0.0) + 0.0001);
-//
-//    // refracted light
-//    vec3 reflection_kD = (vec3(1.0) - F) * (1.0 - material.metallic);
-//    
-//    vec3 reflectionLight = ((reflection_kD * material.albedo.rgb) / Pi + reflection_Specular) * reflection * max(dot(n, -r), 0.0);
-//
+    vec3 result = ambient + mix(reflectionColour, material.albedo.rgb, (1.0 - material.metallic)); // combine ambient + environment
+//    vec3 result = mix(reflectionColour, material.albedo.rgb, (1.0 - material.metallic)); // combine ambient + environment
 
-    h = normalize(v + -n);
-
-    vec3 environment_kS = fresnelReflection(h, v, F0);
-
-    vec3 environment_kD = (1.0 - environment_kS) * (1.0 - material.metallic);	  
-
-    vec3 irradiance = environment;
-
-    vec3 base = irradiance * material.albedo.rgb;
-
-    vec3 ambient = (environment_kD * base) * material.ao;
-
-
-//    vec3 result = reflectionLight + ambient;
-//    vec3 result = reflectionLight;
-    vec3 result = (environment_kD ) * mix(reflection, material.albedo.rgb, (1.0 - material.roughness));// * ((reflection + material.albedo.rgb) * (1.0 - material.metallic));
-//    vec3 result = ambient;
-
-    // ambient lighting (we now use IBL as the ambient term)
-    vec3 kS = fresnelReflection(n, v, F0);
-    vec3 kD = 1.0 - kS;
-    kD *= 1.0 - material.metallic;	  
-    vec3 irradiance2 = environment;
-    vec3 diffuse      = irradiance2 * material.albedo.rgb;
-    vec3 ambient2 = (kD * diffuse) * material.ao;
-
-    result = ambient2 + mix(((reflection * material.albedo.rgb) * (1.0 - material.roughness)), material.albedo.rgb, (1.0 - material.metallic));
-
+    // scale environment lighting with exposure and "scene" brightness (using the main light is temporary)
     if(DoHDRToneMapping)
     {
         result *= Exposure  * lights[0].brightness; // scale brightness with exposure
     }
 
     vec3 colour = result + Lo;
-
-
 
     // Bright-pass filter
     if(luminance(colour.rgb) > LuminanceThreshold) {

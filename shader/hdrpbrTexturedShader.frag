@@ -93,7 +93,7 @@ uniform struct LightInfo {
 	float cutoffInner; // Phi
 	float cutoffOuter; // Gamma
 
-} lights[4];
+} lights[6];
 
 struct MaterialInfo {
 
@@ -216,36 +216,23 @@ void passOne() {
 
     // Get textures' pixel data
     material.albedo = pow(texture(AlbedoTex, TexCoord), vec4(2.2)); // Scale for HDR
+//    material.albedo = texture(AlbedoTex, TexCoord); // Scale for HDR
     material.metallic = texture(MetallicTex, TexCoord).r;
     material.roughness = texture(RoughnessTex, TexCoord).r;
     material.ao = texture(AmbientOcclusionMap, TexCoord).r;
-//    vec4 alphaMap = texture(AlphaTex, TexCoord);
     
     // view vector
     vec3 v = normalize(-Position).xyz; 
 
-
-//    // Discard fragment based on alpah map
-//    if(alphaMap.a < AlphaDiscard)
-//    {
-//        discard;
-//    }
-
     vec3 n = Normal;
-//    // Invert face normals if pointing away from camera
-//    if(!gl_FrontFacing)
-//    {
-//        n = -Normal;
-//    }
-
 
     // Calculate surface base reflectivity
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, material.albedo.rgb, material.metallic);
-//    F0 = mix(F0, material.albedo.rgb, (1.0 - material.metallic));
+
 
     // Compute lighting
-    for(int i = 0; i < 4; i++)
+    for(int i = 0; i < 6; i++)
     {
         Lo += computeMicrofacetModel(i, F0, n, v);
     }
