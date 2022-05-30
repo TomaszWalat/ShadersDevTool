@@ -5,24 +5,35 @@ An OpenGL 4.6 program that presents my custom shader model.
 - manipulate Model View Projection (MVP) matrices
 - control camera position and rotation with keyboard and mouse (arcball style)
 - manipulate each scene light individually
-- manipulate each scene object individually
-- dynamically change shaders (UI currently disabled)
+- ~~manipulate each scene object individually~~ - UI is curentlly disconnected for object material properties (it'll be back though ;) )
+- dynamically change shaders (UI currently disabled) - UI is currently hidded, but the program still uses this functionallity
+- there are two versions of the PBR shader - textured and textureless (textureless = adjustable values)
  
 **GLSL features**
- - Blinn-Phong shading
- - Skybox
+ - PBR shading model
+ - HDR (w/ tone mapping)
+ - Bloom effect (using custom Gaussian blur)
+ - Skybox (HDR)
  - Multi-light setup
  - Light attenuation for point and spot lights
- - Skybox reflection in objects
- - Object base colour (optional)
- - Albedo texturing (optional)
- - Normal mapping (optional)
- - Alpha mapping / fragment discarding (optional)
+ - HDR exposure control
+ - Skybox reflection / lighting in objects
+ - ~~Object base colour (optional)~~ - currently not accessable through UI
+ - PBR textures
+ - Albedo texturing
+ - Roughness texturing
+ - Metalic-ness texturing
+ - Ambient Occlussion mapping
+ - ~~Normal mapping (optional)~~ - temporarly removed
+ - ~~Alpha mapping / fragment discarding (optional)~~ - temporarly removed
  
   
 <details>
  <summary><b>Picture</b></summary>
-
+ Version 2
+<img src="https://user-images.githubusercontent.com/33025239/171000994-17285043-1cf0-453b-b886-ee2339073dec.png" alt="shader scene" width="" height="">
+ 
+ Version 1
 <img src="https://user-images.githubusercontent.com/33025239/161029848-3b2a23a1-bd1e-4e20-aad2-3c93cf7e1d08.png" alt="sceneWithUI" width="" height="">
 </details>
 
@@ -38,10 +49,34 @@ An OpenGL 4.6 program that presents my custom shader model.
 </details>
   
 ---
+<details><summary> What's new </summary>
+ - Blinn-Phong has been removed
+ - PBR added (textured and textureless version)
+ - HDR with tone mapping added
+ - Bloom added
+ - Skybox changed to HDR
+ - Skybox reflection now adds light (linked to brightness of light #0)
+ - Light (object) shader
+ - new model: sphere
+ - new model: cow
+ - piggy got removed
+ - lots of new PBR textures
+ - texturing changed to PBR texturing
+</details>
+  
+---
 ## Developer Walkthrough
 
+
 <details>
- <summary>Show</summary>
+ <summary>Version 2</summary>
+ 
+[![Project developer walkthrough](https://img.youtube.com/vi/GJkhnt9OuY0/0.jpg)](https://youtu.be/r_n1ZyCDWkY)
+
+</details>
+
+<details>
+ <summary>Version 1</summary>
  
 [![Project developer walkthrough](https://img.youtube.com/vi/GJkhnt9OuY0/0.jpg)](https://youtu.be/GJkhnt9OuY0)
 
@@ -71,10 +106,12 @@ Note: Unfortunately I believe there is a memory leak, which (according to analys
 - `imgui.ini`
 - <details><summary> shader </summary> <!-- folder start -->
  
-  - `blinnPhongShader.vert`
-  - `blinnPhongShader.frag`
-  - `blinnPhongShader_normalMap.vert`
-  - `blinnPhongShader_normalMap.frag`
+  - `hdrpbrTexturedShader.vert`
+  - `hdrpbrTexturedShader.frag`
+  - `hdrpbrTexturelessShader.vert`
+  - `hdrpbrTexturelessShader.frag`
+  - `lightShader.vert`
+  - `lightShader.frag`
   - `skyboxShader.vert`
   - `skyboxShader.frag`
   </details> <!-- end shader folder -->
@@ -82,29 +119,27 @@ Note: Unfortunately I believe there is a memory leak, which (according to analys
 - <details><summary> media </summary> <!-- folder start -->
  
   - `bs_ears.obj`
-  - `pig_triangulated.obj`
+  - `spot_triangulated.obj`
+ 
+  - <details><summary> 3rd_party </summary> <!-- folder start -->
+ 
+    - <details><summary> freePBR-dot-com </summary> <!-- folder start -->
+ 
+      </details> <!-- end freePBR-dot-com folder -->
+  
+    - <details><summary> hdrLabs-dot-com </summary> <!-- folder start -->
+ 
+      </details> <!-- end hdrLabs-dot-com folder -->
+ 
+    </details> <!-- end 3rd_party folder -->
+ 
  
   - <details><summary> texture </summary> <!-- folder start -->
- 
-    - `cement.jpg`
-    - `fire.png`
-    - `star.png`
- 
-    - <details><summary> brick </summary> <!-- folder start -->
- 
-      - `brick1.jpg`
-      </details> <!-- end brick folder -->
- 
     - <details><summary> ogre </summary> <!-- folder start -->
  
       - `ogre_diffuse.png`
-      - `ogre_normalmap.png`
+      - `ogre_ao.png`
       </details> <!-- end ogre folder -->
- 
-    - <details><summary> ripple </summary> <!-- folder start -->
- 
-      - `NormalMap_invertedR.png`
-      </details> <!-- end ripple folder -->
  
     - <details><summary> skybox </summary> <!-- folder start -->
  
@@ -116,10 +151,17 @@ Note: Unfortunately I believe there is a memory leak, which (according to analys
       - `lake180_posz.jpg`
       </details> <!-- end skybox folder -->
  
-    - <details><summary> wood </summary> <!-- folder start -->
- 
-      - `Albedo.jpg`
-      </details> <!-- end wood folder -->
+    - <details><summary> cube </summary> <!-- folder start -->
+      - <details><summary> pisa-hdr </summary> <!-- folder start -->
+
+       - `lake180_negx.jpg`
+       - `lake180_negy.jpg`
+       - `lake180_negz.jpg`
+       - `lake180_posx.jpg`
+       - `lake180_posy.jpg`
+       - `lake180_posz.jpg`
+       </details> <!-- end pisa-hdr folder -->
+      </details> <!-- end cube folder -->
  
     </details> <!-- end texture folder -->
   </details> <!-- end media folder -->
@@ -183,9 +225,10 @@ Note: Unfortunately I believe there is a memory leak, which (according to analys
 
 ### Shaders
 There are currently three shaders that come with the project:
- - Blinn-Phong shader (w/ light attenuation and skybox reflection)
- - Blinn-Phong with normal mapping shader (w/ attenuation and skybox reflection)
+ - PBR with HDR shader using textures (w/ tone mapping, bloom, light attenuation and skybox reflection)
+ - PBR with HDR shader that uses input values (w/ tone mapping, bloom, attenuation and skybox reflection)
  - Skybox shader - for rendering the scene skybox
+ - Light shader - for rendering the scene lights
  
 Shaders are listed in the `shaders` vector, compiled, linked and placed into the `progs` map - currently the setup does not support geometry shaders, but it will in future versions (it's an easy tweak).
  
@@ -264,3 +307,12 @@ In the scene there are 11 objects:
 
 The camera's "transform" (like in Unity) is technically split into two: the model (world) matrix which is what is moved to offset the scene's world space (giving the illusion the camera is moving); and the view matrix, which is set back from the origin in the -Z direction (into the screen) and rotated around its axes to give the illusion of the camera rotating around what's in front of it in an arcball fashion.
   
+
+---
+## Creadits
+
+PBR textures downloaded from: https://freepbr.com/c/all/
+HDR Skyboxes downloaded from: http://www.hdrlabs.com/sibl/archive.html
+HDRI to Cubemap converter: https://matheowis.github.io/HDRI-to-CubeMap/
+
+
