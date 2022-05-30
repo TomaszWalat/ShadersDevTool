@@ -28,10 +28,5 @@ void main() {
         BlurOneColor = vec4(0.0);
     }
 
-//    // HDR tonemapping and gamma correction - disabled as tonemapping and gamma correction are take care of in the main shader (stage 5)
-//    colour = colour / (colour + vec3(1.0));
-//    colour = pow(colour, vec3(1.0/2.2));
-    
-//    FragColor = vec4(colour, 1.0);
     HdrColor = vec4(colour, 1.0);
 }

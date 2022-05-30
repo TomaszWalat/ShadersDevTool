@@ -62,6 +62,9 @@ SceneBasic_Uniform::SceneBasic_Uniform() : skybox(100.0f),
 
 
 
+
+// ---------------- Set up functions ---------------- //
+
 void SceneBasic_Uniform::initScene()
 {
 	//// Debugging function
@@ -116,7 +119,7 @@ void SceneBasic_Uniform::initScene()
 			metalCube.material.metallicTex = textures.aluminumScuffed_Metallic;
 			//metalCube.material.normalMap = textures.rustedIron_NormalMap;
 			////metalCube.material.displacementMap = textures.rustedIron_;
-			metalCube.material.ambientOcclusionMap = textures.alienMetal_AmbientOcclusionMap;
+			metalCube.material.ambientOcclusionMap = textures.aluminumScuffed_AmbientOcclusionMap;
 			
 
 			//box.material.albedoTex = textures.scuffedPlastic_Albedo;
@@ -185,9 +188,6 @@ void SceneBasic_Uniform::initScene()
 		m = glm::translate(mat4(1.0f), vec3(0.0f, -1.0f, -10.0f));
 		floor_1.modelMatrix = m;
 		
-			//m = glm::translate(mat4(1.0f), vec3(-6.0f, 0.0f, -10.5f));
-			//box.modelMatrix = m;
-
 			m = glm::scale(mat4(1.0f), vec3(3.0f));
 			m = glm::rotate(m, glm::radians(180.0f), vec3(0.0f, 1.0f, 0.0f));
 			m = glm::translate(m, vec3(2.0f, 0.5f, 3.5f));
@@ -490,36 +490,6 @@ void SceneBasic_Uniform::initScene()
 			30.0f, 45.0f
 		};
 		lights.push_back(L6);
-		
-		//LightInfo L7 = { // Point - 3 (floor 2)
-		//	vec4(-6.0f, 6.0f, -6.0f, 1.0f),
-		//	vec3(0.0f, -1.0f, 0.0f),
-		//	vec3(0.0f, 0.0f, 1.0f), // Blue
-		//	1.0f,
-		//	1.0f, 0.022f, 0.0019f,
-		//	30.0f, 45.0f
-		//};
-		//lights.push_back(L4);
-		
-		//LightInfo L8 = { // Point - 4 (floor 2)
-		//	vec4(-6.0f, 6.0f, -6.0f, 1.0f),
-		//	vec3(0.0f, -1.0f, 0.0f),
-		//	vec3(0.0f, 0.0f, 1.0f), // Blue
-		//	1.0f,
-		//	1.0f, 0.022f, 0.0019f,
-		//	30.0f, 45.0f
-		//};
-		//lights.push_back(L4);
-		
-		//LightInfo L9 = { // Point - 5 (floor 3)
-		//	vec4(-6.0f, 6.0f, -6.0f, 1.0f),
-		//	vec3(0.0f, -1.0f, 0.0f),
-		//	vec3(0.0f, 0.0f, 1.0f), // Blue
-		//	1.0f,
-		//	1.0f, 0.022f, 0.0019f,
-		//	30.0f, 45.0f
-		//};
-		//lights.push_back(L4);
 	}
 
 
@@ -560,22 +530,6 @@ void SceneBasic_Uniform::compile()
 	currentProg = shaders[0][0];
 	progs.at(currentProg)->use();
 }
-
-
-void SceneBasic_Uniform::changeShader(std::string shaderName)
-{
-	//std::map<std::string, std::unique_ptr<GLSLProgram>>::iterator i = progs.find(shaderName);
-	auto iterator = progs.find(shaderName);
-
-	if(iterator != progs.end())
-	{
-		//std::cout << "found: " << shaderName << std::endl;
-		currentProg = iterator->first;
-		iterator->second->use();
-	}
-}
-
-
 
 
 // Sets up HDR / bloom FBO
@@ -745,29 +699,9 @@ float SceneBasic_Uniform::gauss(float x, float sigma2)
 }
 
 
-// Computes (HDR) texture log of average lumen
-void SceneBasic_Uniform::computeLogAvgLuminance()
-{
-	int size = width * height;
-
-	std::vector<GLfloat> texData(size * 4);
-
-	glActiveTexture(GL_TEXTURE8);
-	glBindTexture(GL_TEXTURE_2D, bufferTextures.hdr_Colour);
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, texData.data());
-
-	float sum = 0.0f;
-	for (int i = 0; i < size; i++) 
-	{
-		float lum = glm::dot(vec3(texData[i * 4 + 0], texData[i * 4 + 1],	texData[i * 4 + 2]), vec3(0.2126f, 0.7152f, 0.0722f));
-		sum += logf(lum + 0.00001f);
-	}
-
-	progs.at(currentProg)->setUniform("AverageLumen", expf(sum / size));
-}
 
 
-
+// ---------------- Uniform setting functions ---------------- //
 
 // Sets "global" uniforms (mainly matrices, mainly camera related)
 void SceneBasic_Uniform::setMatrices()
@@ -907,6 +841,8 @@ void SceneBasic_Uniform::setWeights()
 
 
 
+
+// ---------------- Drawing functions ---------------- //
 
 // Draw scene to HDR texture, draw bright pixels to blur one texture
 void SceneBasic_Uniform::drawPassOne()
@@ -1273,9 +1209,9 @@ void SceneBasic_Uniform::drawGUI()
 		ImGui::Separator();
 		ImGui::SliderFloat("Bloom Threshold", &luminanceThreshold, 0.01f, 5.0f);
 		ImGui::Separator();
-		ImGui::SliderInt("Bloom axis level", &bloomBlurOneStrength, 1, 10);
+		ImGui::SliderInt("Bloom one level", &bloomBlurOneStrength, 1, 10);
 		ImGui::Separator();
-		ImGui::SliderInt("Bloom diagonal level", &bloomBlurTwoStrength, 1, 10);
+		ImGui::SliderInt("Bloom two level", &bloomBlurTwoStrength, 1, 10);
 		ImGui::Separator();
 		ImGui::Separator();
 
@@ -1334,6 +1270,9 @@ void SceneBasic_Uniform::drawGUI()
 }
 
 
+
+// ---------------- Core scene functions ---------------- //
+
 // Executes various draw functions
 void SceneBasic_Uniform::render()
 {
@@ -1352,12 +1291,50 @@ void SceneBasic_Uniform::render()
 }
 
 
-
-
 // Update game loop - for physics and/or animations
 void SceneBasic_Uniform::update( float t )
 {
 	//update your angle here
+}
+
+
+
+
+// ---------------- Utility functions ---------------- //
+
+void SceneBasic_Uniform::changeShader(std::string shaderName)
+{
+	//std::map<std::string, std::unique_ptr<GLSLProgram>>::iterator i = progs.find(shaderName);
+	auto iterator = progs.find(shaderName);
+
+	if(iterator != progs.end())
+	{
+		//std::cout << "found: " << shaderName << std::endl;
+		currentProg = iterator->first;
+		iterator->second->use();
+	}
+}
+
+
+// Computes (HDR) texture log of average lumen
+void SceneBasic_Uniform::computeLogAvgLuminance()
+{
+	int size = width * height;
+
+	std::vector<GLfloat> texData(size * 4);
+
+	glActiveTexture(GL_TEXTURE8);
+	glBindTexture(GL_TEXTURE_2D, bufferTextures.hdr_Colour);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, texData.data());
+
+	float sum = 0.0f;
+	for (int i = 0; i < size; i++) 
+	{
+		float lum = glm::dot(vec3(texData[i * 4 + 0], texData[i * 4 + 1],	texData[i * 4 + 2]), vec3(0.2126f, 0.7152f, 0.0722f));
+		sum += logf(lum + 0.00001f);
+	}
+
+	progs.at(currentProg)->setUniform("AverageLumen", expf(sum / size));
 }
 
 
@@ -1371,6 +1348,8 @@ void SceneBasic_Uniform::resize(int w, int h)
 
 	//projection = glm::perspective(glm::radians(70.0f), (float)w/h, 0.3f, 100.0f);
 }
+
+
 
 
 // Clean up memory
@@ -1389,10 +1368,10 @@ SceneBasic_Uniform::~SceneBasic_Uniform()
 
 	glDeleteTextures(1, &textures.skybox_MountainLake);
 	glDeleteTextures(1, &textures.skybox_PisaHDR);
-	//glDeleteTextures(1, &textures.brick_Albedo);
 	glDeleteTextures(1, &textures.ogre_Albedo);
 	glDeleteTextures(1, &textures.ogre_NormalMap);
 	glDeleteTextures(1, &textures.ogre_AmbientOcclusionMap);
+	//glDeleteTextures(1, &textures.brick_Albedo);
 	//glDeleteTextures(1, &textures.ripple_NormalMap);
 	//glDeleteTextures(1, &textures.wood_Albedo);
 	//glDeleteTextures(1, &textures.fire);
@@ -1413,24 +1392,24 @@ SceneBasic_Uniform::~SceneBasic_Uniform()
 	//glDeleteTextures(1, &textures.copperScuffed_NormalMap);
 	glDeleteTextures(1, &textures.copperScuffed_AmbientOcclusionMap);
 
-	glDeleteTextures(1, &textures.rustedIron_Albedo);
-	glDeleteTextures(1, &textures.rustedIron_Roughness);
-	glDeleteTextures(1, &textures.rustedIron_Metallic);
-	//glDeleteTextures(1, &textures.rustedIron_NormalMap);
-	glDeleteTextures(1, &textures.rustedIron_AmbientOcclusionMap);
+	//glDeleteTextures(1, &textures.rustedIron_Albedo);
+	//glDeleteTextures(1, &textures.rustedIron_Roughness);
+	//glDeleteTextures(1, &textures.rustedIron_Metallic);
+	////glDeleteTextures(1, &textures.rustedIron_NormalMap);
+	//glDeleteTextures(1, &textures.rustedIron_AmbientOcclusionMap);
 
-	glDeleteTextures(1, &textures.bambooWood_Albedo);
-	glDeleteTextures(1, &textures.bambooWood_Roughness);
-	glDeleteTextures(1, &textures.bambooWood_Metallic);
-	//glDeleteTextures(1, &textures.bambooWood_NormalMap);
-	glDeleteTextures(1, &textures.bambooWood_AmbientOcclusionMap);
+	//glDeleteTextures(1, &textures.bambooWood_Albedo);
+	//glDeleteTextures(1, &textures.bambooWood_Roughness);
+	//glDeleteTextures(1, &textures.bambooWood_Metallic);
+	////glDeleteTextures(1, &textures.bambooWood_NormalMap);
+	//glDeleteTextures(1, &textures.bambooWood_AmbientOcclusionMap);
 
-	glDeleteTextures(1, &textures.redBrick_Albedo);
-	glDeleteTextures(1, &textures.redBrick_Roughness);
-	glDeleteTextures(1, &textures.redBrick_Metallic);
-	//glDeleteTextures(1, &textures.redBrick_NormalMap);
-	//glDeleteTextures(1, &textures.redBrick_HeightMap);
-	glDeleteTextures(1, &textures.redBrick_AmbientOcclusionMap);
+	//glDeleteTextures(1, &textures.redBrick_Albedo);
+	//glDeleteTextures(1, &textures.redBrick_Roughness);
+	//glDeleteTextures(1, &textures.redBrick_Metallic);
+	////glDeleteTextures(1, &textures.redBrick_NormalMap);
+	////glDeleteTextures(1, &textures.redBrick_HeightMap);
+	//glDeleteTextures(1, &textures.redBrick_AmbientOcclusionMap);
 
 	glDeleteTextures(1, &textures.grayGraniteFlecks_Albedo);
 	glDeleteTextures(1, &textures.grayGraniteFlecks_Roughness);
@@ -1438,11 +1417,11 @@ SceneBasic_Uniform::~SceneBasic_Uniform()
 	//glDeleteTextures(1, &textures.grayGraniteFlecks_NormalMap);
 	glDeleteTextures(1, &textures.grayGraniteFlecks_AmbientOcclusionMap);
 
-	glDeleteTextures(1, &textures.scuffedPlastic_Albedo);
-	glDeleteTextures(1, &textures.scuffedPlastic_Roughness);
-	glDeleteTextures(1, &textures.scuffedPlastic_Metallic);
-	//glDeleteTextures(1, &textures.scuffedPlastic_NormalMap);
-	glDeleteTextures(1, &textures.scuffedPlastic_AmbientOcclusionMap);
+	//glDeleteTextures(1, &textures.scuffedPlastic_Albedo);
+	//glDeleteTextures(1, &textures.scuffedPlastic_Roughness);
+	//glDeleteTextures(1, &textures.scuffedPlastic_Metallic);
+	////glDeleteTextures(1, &textures.scuffedPlastic_NormalMap);
+	//glDeleteTextures(1, &textures.scuffedPlastic_AmbientOcclusionMap);
 
 	//glDeleteTextures(1, &textures.humanSkin_Albedo);
 	glDeleteTextures(1, &textures.humanSkin_Roughness);

@@ -31,13 +31,7 @@ void main() {
 
     vec3 s = normalize((Position * LightType) - lPosition).xyz; // Direction of light ray
 
-//   
-//    // --- Attenuation calculation --- //
-//    float lDistance = length(lPosition - Position) * lPosition.w; // Distance from light
-//
-//    float attenuation = 1.0 / (1.0 + lights[lightNo].attenuationLinear * lDistance + lights[lightNo].attenuationQuadratic * (lDistance * lDistance));
-//
-//
+
     // --- Spotlight calculation --- //
     float intensity = 1.0f;
     
@@ -54,16 +48,13 @@ void main() {
         intensity = clamp((theta - CutoffOuter) / epsilon, 0.0, 1.0); // intensity = 1.0 inside the inner cone
     }
     
+
     vec3 radiance = LightColour * Brightness * intensity;// * attenuation;
 
     colour *= radiance;
 
     BlurOneColor = vec4(colour, 1.0);
         
-//    // HDR tonemapping and gamma correction - disabled as tonemapping and gamma correction are take care of in the main shader (stage 5)
-//    colour = colour / (colour + vec3(1.0));
-//    colour = pow(colour, vec3(1.0/2.2));
-    
-//    FragColor = vec4(colour, 1.0);
+
     HdrColor = vec4(colour, 1.0);
 }

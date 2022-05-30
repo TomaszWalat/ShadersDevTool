@@ -140,20 +140,22 @@ vec3 computeMicrofacetModel(in int lightNo, in vec3 F0, in vec3 n, in vec3 v) {
         float theta = dot(s, lDirection); // angle between light ray (from light to fragment)
 
         float epsilon = lights[lightNo].cutoffOuter - lights[lightNo].cutoffInner; // fade out angle
-//        float epsilon = lights[lightNo].cutoffInner - lights[lightNo].cutoffOuter; // fade out angle
 
         intensity = clamp((theta - lights[lightNo].cutoffOuter) / epsilon, 0.0, 1.0); // intensity = 1.0 inside the inner cone
     }
     
+
     vec3 radiance = lights[lightNo].colour * lights[lightNo].brightness * intensity * attenuation;
 
     // half vector
     vec3 h = normalize(v + -s);
 
+
     // Cook-Torrance BRDF
     float D = normalDistribution(n, h);
     float G = geometryShadowing(n, v, s);
     vec3  F = fresnelReflection(h, v, F0);
+
 
     // specular
     vec3 specular = (D * G * F) / (4 * max(dot(n, v), 0.0) * max(dot(n, -s), 0.0) + 0.0001);
@@ -161,6 +163,8 @@ vec3 computeMicrofacetModel(in int lightNo, in vec3 F0, in vec3 n, in vec3 v) {
     // refracted light
     vec3 kd = (vec3(1.0) - F) * (1.0 - material.metallic);
     
+
+
     return ((kd * material.albedo.rgb) / Pi + specular) * radiance * max(dot(n, -s), 0.0);
 }
 
@@ -178,21 +182,21 @@ void main() {
     
     vec3 Lo = vec3(0.0);
 
-    // view vector
-    vec3 v = normalize(-Position).xyz; 
+    vec3 v = normalize(-Position).xyz; // view vector
 
     vec3 n = normalize(Normal);
 
     // Calculate surface base reflectivity
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, material.albedo.rgb, material.metallic);
-//    F0 = mix(F0, material.albedo.rgb, (1.0 - material.metallic));
+
 
     // Compute lighting
     for(int i = 0; i < 6; i++)
     {
         Lo += computeMicrofacetModel(i, F0, n, v);
     }
+
 
     // skybox reflection vector - transpose to get the inverse of SkyboxRotationMatrix (which has ViewMatrix within it)
     vec3 rView = transpose(mat3(SkyboxRotationMatrix)) * v;
@@ -216,7 +220,8 @@ void main() {
     vec3 reflectionColour = (reflection * material.albedo.rgb) * (1.0 - material.roughness); // calculate strength of reflection
 
     vec3 result = ambient + mix(reflectionColour, material.albedo.rgb, (1.0 - material.metallic)); // combine ambient + environment
-//    vec3 result = mix(reflectionColour, material.albedo.rgb, (1.0 - material.metallic)); // combine ambient + environment
+
+
 
     // scale environment lighting with exposure and "scene" brightness (using the main light is temporary)
     if(DoHDRToneMapping)
@@ -237,6 +242,6 @@ void main() {
     }
 
 
-//    HdrColor = vec4(1.0);
+
     HdrColor = vec4(colour, 1.0);
 }
